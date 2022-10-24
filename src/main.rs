@@ -10,7 +10,9 @@ use pos::*;
 
 use pixels::{SurfaceTexture, PixelsBuilder, Error};
 use shapes::{create_4_cube, create_3_sphere, create_3_cube, create_4_sphere};
-use winit::{event_loop::EventLoop, window::WindowBuilder, event::{Event, WindowEvent}, dpi::{LogicalSize, PhysicalSize}, platform::windows::WindowBuilderExtWindows};
+use winit::{event_loop::EventLoop, window::WindowBuilder, event::{Event, WindowEvent}, dpi::{LogicalSize, PhysicalSize}};
+#[cfg(target_os = "windows")]
+use winit::platform::windows::WindowBuilderExtWindows;
 
 const WIDTH: u32 = 500;
 const HEIGHT: u32 = 500;
@@ -43,7 +45,6 @@ fn main() -> Result<(), Error> {
         // .with_decorations(false)
         // .with_transparent(true)
         .with_always_on_top(true)
-        .with_drag_and_drop(false)
         .with_inner_size(LogicalSize::new(WIDTH, HEIGHT))
         .with_min_inner_size(LogicalSize::new(100, 100))
         .with_resizable(false)
@@ -213,7 +214,7 @@ impl Render for Edge {
         };
 
         // Set 1 / the amount of points that compose an edge
-        let resolution: f64 = 0.01;
+        let resolution: f64 = 0.05;
 
         let rgba = [0xff, 0x00, 0xbb, 0xff];
 
