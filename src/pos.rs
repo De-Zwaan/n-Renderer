@@ -17,7 +17,7 @@ impl ops::Add for Pos2D {
         let x: f64 = self.x + rhs.x;
         let y: f64 = self.y + rhs.y;
 
-        Self {x, y}
+        Self::Output { x, y }
     }
 }
 
@@ -28,7 +28,7 @@ impl ops::Mul<f64> for Pos2D {
         let x: f64 = self.x * rhs;
         let y: f64 = self.y * rhs;
 
-        Self {x, y}
+        Self::Output { x, y }
     }
 }
 
@@ -53,7 +53,7 @@ impl ops::Add for Pos3D {
         let y: f64 = self.y + rhs.y;
         let z: f64 = self.z + rhs.z;
 
-        Self {x, y, z}
+        Self::Output { x, y, z }
     }
 } 
 
@@ -65,7 +65,7 @@ impl ops::Mul<f64> for Pos3D {
         let y: f64 = self.y * rhs;
         let z: f64 = self.z * rhs;
 
-        Self {x, y, z}
+        Self::Output { x, y, z }
     }
 }
 
@@ -369,7 +369,7 @@ impl ops::Add for Pos4D {
         let z: f64 = self.z + rhs.z;
         let w: f64 = self.w + rhs.w;
 
-        Self {x, y, z, w}
+        Self::Output { x, y, z, w }
     }
 }
 
@@ -377,12 +377,12 @@ impl ops::Mul<f64> for Pos4D {
     type Output = Pos4D;
 
     fn mul(self, rhs: f64) -> Self::Output {
-        Self::Output {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-            w: self.w * rhs,
-        }
+        let x: f64 = self.x * rhs;
+        let y: f64 = self.y * rhs;
+        let z: f64 = self.z * rhs;
+        let w: f64 = self.w * rhs;
+
+        Self::Output { x, y, z, w }
     }
 }
 
@@ -390,12 +390,12 @@ impl ops::Sub for Pos4D {
     type Output = Pos4D;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Self::Output {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: self.w - rhs.w,
-        }
+        let x: f64 = self.x - rhs.x;
+        let y: f64 = self.y - rhs.y;
+        let z: f64 = self.z - rhs.z;
+        let w: f64 = self.w - rhs.w;
+
+        Self::Output { x, y, z, w }
     }
 }
 
