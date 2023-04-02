@@ -81,13 +81,17 @@ impl Object {
         projection: Projection,
     ) {
         // Iterate over all edges, vertices and faces of the object and draw them
-        // self.edges.iter().for_each(|edge| {
-        //     edge.draw(&self.nodes, screen, size, projection, projection_scale);
-        // });
+        self.edges.iter().for_each(|edge| {
+            if edge.r > 0.1 {
+                edge.draw(&self.nodes, screen, size, projection, projection_scale);
+            }
+        });
 
-        // self.nodes.iter().for_each(|node| {
-        //     node.draw(&self.nodes, screen, size, projection, projection_scale);
-        // });
+        self.nodes.iter().for_each(|node| {
+            if node.r > 0.1 {
+                node.draw(&self.nodes, screen, size, projection, projection_scale);
+            }
+        });
 
         self.faces.iter().for_each(|face| {
             face.draw(&self.nodes, screen, size, projection, projection_scale);
