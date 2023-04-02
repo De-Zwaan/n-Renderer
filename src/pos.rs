@@ -1,10 +1,180 @@
-use std::{ops, process::Output};
+use std::ops;
+
+use winit::dpi::PhysicalSize;
+
+use crate::matrix::{Matrix2x2, Matrix3x3, Matrix4x4};
+
+#[derive(Clone, Copy, Debug)]
+pub enum RotationPlane {
+    XY,
+    XZ,
+    XW,
+    YX,
+    YZ,
+    YW,
+    ZX,
+    ZY,
+    ZW,
+    WX,
+    WY,
+    WZ,
+}
+
+impl RotationPlane {
+    pub fn get_rot_mat_4d(plane: RotationPlane, angle: f64) -> Matrix4x4 {
+        let cos: f64 = angle.cos();
+        let sin: f64 = angle.sin();
+
+        use RotationPlane::*;
+
+        match plane {
+            XY => Matrix4x4::new([
+                [cos, sin, 0.0, 0.0],
+                [-sin, cos, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]),
+            XZ => Matrix4x4::new([
+                [cos, 0.0, sin, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [-sin, 0.0, cos, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]),
+            XW => Matrix4x4::new([
+                [cos, 0.0, 0.0, sin],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [-sin, 0.0, 0.0, cos],
+            ]),
+            YX => Matrix4x4::new([
+                [cos, -sin, 0.0, 0.0],
+                [sin, cos, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]),
+            YZ => Matrix4x4::new([
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, cos, sin, 0.0],
+                [0.0, -sin, cos, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]),
+            YW => Matrix4x4::new([
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, cos, 0.0, sin],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, -sin, 0.0, cos],
+            ]),
+            ZX => Matrix4x4::new([
+                [cos, 0.0, -sin, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [sin, 0.0, cos, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]),
+            ZY => Matrix4x4::new([
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, cos, -sin, 0.0],
+                [0.0, sin, cos, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]),
+            ZW => Matrix4x4::new([
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, cos, sin],
+                [0.0, 0.0, -sin, cos],
+            ]),
+            WX => Matrix4x4::new([
+                [cos, 0.0, 0.0, -sin],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [sin, 0.0, 0.0, cos],
+            ]),
+            WY => Matrix4x4::new([
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, cos, 0.0, -sin],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, sin, 0.0, cos],
+            ]),
+            WZ => Matrix4x4::new([
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, cos, -sin],
+                [0.0, 0.0, sin, cos],
+            ]),
+        }
+    }
+
+    pub fn _get_rot_mat_3d(plane: RotationPlane, angle: f64) -> Matrix3x3 {
+        let cos: f64 = angle.cos();
+        let sin: f64 = angle.sin();
+
+        use RotationPlane::*;
+
+        match plane {
+            XY => Matrix3x3::new([[cos, sin, 0.0], [-sin, cos, 0.0], [0.0, 0.0, 1.0]]),
+            XZ => Matrix3x3::new([[cos, 0.0, sin], [0.0, 1.0, 0.0], [-sin, 0.0, cos]]),
+            YX => Matrix3x3::new([[cos, -sin, 0.0], [sin, cos, 0.0], [0.0, 0.0, 1.0]]),
+            YZ => Matrix3x3::new([[1.0, 0.0, 0.0], [0.0, cos, sin], [0.0, -sin, cos]]),
+            ZX => Matrix3x3::new([[cos, 0.0, -sin], [0.0, 1.0, 0.0], [sin, 0.0, cos]]),
+            ZY => Matrix3x3::new([[1.0, 0.0, 0.0], [0.0, cos, -sin], [0.0, sin, cos]]),
+            _ => Matrix3x3::new([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]),
+        }
+    }
+
+    pub fn _get_rot_mat_2d(plane: RotationPlane, angle: f64) -> Matrix2x2 {
+        let cos: f64 = angle.cos();
+        let sin: f64 = angle.sin();
+
+        use RotationPlane::*;
+
+        match plane {
+            XY => Matrix2x2::new([[cos, sin], [-sin, cos]]),
+            YX => Matrix2x2::new([[cos, -sin], [sin, cos]]),
+            _ => Matrix2x2::new([[1.0, 0.0], [0.0, 1.0]]),
+        }
+    }
+}
 
 pub trait Len {
     fn len(&self) -> f64;
+    fn is_empty(&self) -> bool;
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
+pub struct Pos1D {
+    pub x: f64,
+}
+
+impl ops::Add for Pos1D {
+    type Output = Pos1D;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let x: f64 = self.x + rhs.x;
+
+        Self::Output { x }
+    }
+}
+
+impl ops::Mul<f64> for Pos1D {
+    type Output = Pos1D;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        let x: f64 = self.x * rhs;
+
+        Self::Output { x }
+    }
+}
+
+impl Len for Pos1D {
+    fn len(&self) -> f64 {
+        self.x
+    }
+
+    fn is_empty(&self) -> bool {
+        self.x == 0.0
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
 pub struct Pos2D {
     pub x: f64,
     pub y: f64,
@@ -16,6 +186,17 @@ impl ops::Add for Pos2D {
     fn add(self, rhs: Self) -> Self::Output {
         let x: f64 = self.x + rhs.x;
         let y: f64 = self.y + rhs.y;
+
+        Self::Output { x, y }
+    }
+}
+
+impl ops::Sub for Pos2D {
+    type Output = Pos2D;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let x: f64 = self.x - rhs.x;
+        let y: f64 = self.y - rhs.y;
 
         Self::Output { x, y }
     }
@@ -36,9 +217,24 @@ impl Len for Pos2D {
     fn len(&self) -> f64 {
         (self.x.powi(2) + self.y.powi(2)).sqrt()
     }
+
+    fn is_empty(&self) -> bool {
+        self.x == 0.0 && self.y == 0.0
+    }
 }
 
-#[derive(Clone, Copy)]
+impl Pos2D {
+    /// Transform the rendered coordinates such that it is displayed in the center of the window
+    pub fn to_screen_coords(self, scale: f64, size: PhysicalSize<u32>) -> Pos2D {
+        self * scale
+            + Pos2D {
+                x: size.width as f64 / 2.0,
+                y: size.height as f64 / 2.0,
+            }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
 pub struct Pos3D {
     pub x: f64,
     pub y: f64,
@@ -55,7 +251,7 @@ impl ops::Add for Pos3D {
 
         Self::Output { x, y, z }
     }
-} 
+}
 
 impl ops::Mul<f64> for Pos3D {
     type Output = Pos3D;
@@ -69,71 +265,36 @@ impl ops::Mul<f64> for Pos3D {
     }
 }
 
+// Use bitwise xor operator as cross product operator
+impl ops::BitXor for Pos3D {
+    type Output = Pos3D;
+
+    fn bitxor(self, rhs: Pos3D) -> Self::Output {
+        let x: f64 = self.y * rhs.z - self.z * rhs.y;
+        let y: f64 = self.z * rhs.x - self.x * rhs.z;
+        let z: f64 = self.x * rhs.y - self.y * rhs.x;
+
+        Self::Output { x, y, z }
+    }
+}
+
+// Use >> operator as a dot product operator
+impl ops::Shr for Pos3D {
+    type Output = f64;
+
+    fn shr(self, rhs: Self) -> Self::Output {
+        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
+    }
+}
+
 impl Len for Pos3D {
     fn len(&self) -> f64 {
         (self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
     }
-}
 
-impl Pos3D {
-    pub fn transform_to_screen(&self, screen_matrix: [[f64; 2]; 3]) -> Pos2D {
-        let x: f64 = self.x * screen_matrix[0][0] + self.y * screen_matrix[1][0] + self.z * screen_matrix[2][0];
-        let y: f64 = self.y * screen_matrix[0][1] + self.y * screen_matrix[1][1] + self.z * screen_matrix[2][1];
-
-        Pos2D { x, y }
+    fn is_empty(&self) -> bool {
+        self.x == 0.0 && self.y == 0.0 && self.z == 0.0
     }
-
-    pub fn transform_to_pos3d(&self, m: [[f64; 3]; 3]) -> Self {
-        let x: f64 = self.x * m[0][0] + self.y * m[1][0] + self.z * m[2][0];
-        let y: f64 = self.x * m[0][1] + self.y * m[1][1] + self.z * m[2][1];
-        let z: f64 = self.x * m[0][2] + self.y * m[1][2] + self.z * m[2][2];
-       
-        Self { x, y, z } 
-    }
-
-    pub fn rotate_around_y(&self, _axis: [Pos3D; 2], angle: f64) -> Self {
-        // Formulate rotation matrix
-        let rotation_matrix: [[f64; 3]; 3] = [[angle.cos(), 0.0, angle.sin()], [0.0, 1.0, 0.0], [angle.sin(), 0.0, -angle.cos()]];
-        // Rotate in local space
-        self.transform_to_pos3d(rotation_matrix)
-    }
-
-    // fn _rotate() {
-    //     // To test, set axis as y axis
-    //     // Todo: take axis into account
-
-    //     // Transform node to local space
-    //     // Such that the axis is transformed to be the x-axis, and the other axis 
-
-    //     // Calculate the new y axis
-    //     let v_axis = {
-    //         let x = _axis[1].x - _axis[0].x;
-    //         let y = _axis[1].y - _axis[0].y;
-    //         let z = _axis[1].z - _axis[0].z;
-
-    //         let length = (x.powi(2) + y.powi(2) + z.powi(2)).sqrt(); 
-    //         [
-    //             x / length,
-    //             y / length,
-    //             z / length,
-    //         ]
-    //     };
-
-    //     // Formulate matrix transformation
-    //     let a_matrix: [[f64; 3]; 3] = [[,,], [v_axis[0], v_axis[1], v_axis[2]], [,,]]; 
-    //     // Apply transformation
-    //     let local = self._transform_to_pos3d(a_matrix);
-
-    //     // Formulate rotation matrix
-    //     let rotation_matrix: [[f64; 3]; 3] = [[angle.cos(), 0.0, angle.sin()], [0.0, 1.0, 0.0], [angle.sin(), 0.0, -angle.cos()]];
-    //     // Rotate in local space
-    //     let rotated = local._transform_to_pos3d(rotation_matrix);
-
-    //     // Transform node back to global space
-    //     // use inverse matrix of a_matrix
-    //     let a_inverse_matrix = a_matrix.inverse();
-    //     rotated._transform_to_pos3d(a_inverse_matrix)
-    // }
 }
 
 trait Transformation {
@@ -149,7 +310,6 @@ trait Transformation {
 // }
 
 // impl Transformation for [[f64; 3]; 3] {
-    
 
 //     fn swap(&self, first_index: usize, second_index: usize) {
 //         let swap = self[first_index];
@@ -189,8 +349,8 @@ trait Transformation {
 // impl Solve for [[f64; 3]; 3] {
 //     fn gauss(&self, args: [f64; 3]) -> [f64; 3] {
 //         let rows = self.transpose();
-//         let result = 
-//         {   
+//         let result =
+//         {
 //             // Row reduction
 //             if rows[0][0] == 0.0 {
 //                 if rows[1][0] != 0.0 {
@@ -203,7 +363,7 @@ trait Transformation {
 //                     println!("Matrix not solvable, only zeroes in first column");
 //                 }
 //             }
-            
+
 //             // Reduce first entry of first row to 1
 //             let factor = 1.0 / rows[0][0];
 //             rows.mult_row(0, factor);
@@ -253,14 +413,14 @@ trait Transformation {
 //             let factor = -rows[0][2];
 //             rows.add_row(0, 2, factor);
 //             args.add_row(0, 2, factor);
-            
+
 //             let factor = -rows[1][2];
 //             rows.add_row(1, 2, factor);
 //             args.add_row(1, 2, factor);
 
 //             args
 //         };
-        
+
 //         result
 //     }
 
@@ -281,7 +441,7 @@ trait Transformation {
 //                     println!("Matrix not solvable, only zeroes in first column");
 //                 }
 //             }
-            
+
 //             // Reduce first entry of first row to 1
 //             let factor = 1.0 / rows[0][0];
 //             rows.mult_row(0, factor);
@@ -331,20 +491,20 @@ trait Transformation {
 //             let factor = -rows[0][2];
 //             rows.add_row(0, 2, factor);
 //             args.add_row(0, 2, factor);
-            
+
 //             let factor = -rows[1][2];
 //             rows.add_row(1, 2, factor);
 //             args.add_row(1, 2, factor);
 
 //             args
 //         };
-        
+
 //         return result;
 //     }
 
 //     fn transpose(&self) -> Self {
 //         let rows = [
-//             [self[0][0], self[1][0], self[2][0]], 
+//             [self[0][0], self[1][0], self[2][0]],
 //             [self[0][1], self[1][1], self[2][1]],
 //             [self[0][2], self[1][2], self[2][2]]
 //         ];
@@ -352,7 +512,7 @@ trait Transformation {
 //     }
 // }
 
-#[derive(Clone, Copy)] 
+#[derive(Clone, Copy, Debug)]
 pub struct Pos4D {
     pub x: f64,
     pub y: f64,
@@ -373,6 +533,19 @@ impl ops::Add for Pos4D {
     }
 }
 
+impl ops::Sub for Pos4D {
+    type Output = Pos4D;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let x: f64 = rhs.x - self.x;
+        let y: f64 = rhs.y - self.y;
+        let z: f64 = rhs.z - self.z;
+        let w: f64 = rhs.w - self.w;
+
+        Self::Output { x, y, z, w }
+    }
+}
+
 impl ops::Mul<f64> for Pos4D {
     type Output = Pos4D;
 
@@ -386,21 +559,43 @@ impl ops::Mul<f64> for Pos4D {
     }
 }
 
-impl ops::Sub for Pos4D {
+impl ops::Div<f64> for Pos4D {
     type Output = Pos4D;
 
-    fn sub(self, rhs: Self) -> Self::Output {
-        let x: f64 = self.x - rhs.x;
-        let y: f64 = self.y - rhs.y;
-        let z: f64 = self.z - rhs.z;
-        let w: f64 = self.w - rhs.w;
+    fn div(self, rhs: f64) -> Self::Output {
+        self * (1.0 / rhs)
+    }
+}
 
-        Self::Output { x, y, z, w }
+// Use bitwise xor operator as cross product operator
+impl ops::BitXor for Pos4D {
+    type Output = Pos4D;
+
+    fn bitxor(self, rhs: Pos4D) -> Self::Output {
+        let x: f64 = self.y * rhs.z - self.z * rhs.y;
+        let y: f64 = self.z * rhs.w - self.w * rhs.z;
+        let z: f64 = self.w * rhs.x - self.x * rhs.w;
+        let w: f64 = self.x * rhs.y - self.y * rhs.x;
+
+        Pos4D { x, y, z, w }
+    }
+}
+
+// Use >> operator as a dot product operator
+impl ops::Shr for Pos4D {
+    type Output = f64;
+
+    fn shr(self, rhs: Self) -> Self::Output {
+        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w * rhs.w
     }
 }
 
 impl Len for Pos4D {
     fn len(&self) -> f64 {
         (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2)).sqrt()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.x == 0.0 && self.y == 0.0 && self.z == 0.0 && self.w == 0.0
     }
 }

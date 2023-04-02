@@ -1,49 +1,59 @@
-#![windows_subsystem = "windows"]
-pub mod pos;
-pub mod matrix;
-pub mod shapes;
+use std::f64::consts::PI;
 
-use matrix::*;
-use pos::*;
+// Crates for window managment
+use pixels::{Error, PixelsBuilder, SurfaceTexture};
+use winit::{
+    dpi::LogicalSize,
+    event::{Event, WindowEvent},
+    event_loop::EventLoop,
+    window::WindowBuilder,
+};
 
-use pixels::{SurfaceTexture, PixelsBuilder, Error};
-use shapes::{Object, create_4_cube, create_3_sphere, create_3_cube, create_4_sphere, Edge, Node};
-use winit::{event_loop::EventLoop, window::WindowBuilder, event::{Event, WindowEvent}, dpi::{LogicalSize, PhysicalSize}};
-#[cfg(target_os = "windows")]
-use winit::platform::windows::WindowBuilderExtWindows;
+// Actual rendering code
+use simple_graphics::{pos::RotationPlane, shapes::*};
 
-const WIDTH: u32 = 500;
-const HEIGHT: u32 = 500;
+const WIDTH: u32 = 600;
+const HEIGHT: u32 = 600;
 
-const SCALE: f64 = 150.0;
+const SCALE: f64 = 200.0;
 
 fn main() -> Result<(), Error> {
     let event_loop = EventLoop::new();
 
+    // Initialise the window
     let window = WindowBuilder::new()
         .with_title("Spinny Spinny")
         // .with_decorations(false)
-        // .with_transparent(true)
+        .with_transparent(true)
         .with_always_on_top(true)
         .with_inner_size(LogicalSize::new(WIDTH, HEIGHT))
-        .with_min_inner_size(LogicalSize::new(100, 100))
         .with_resizable(false)
         .build(&event_loop)
         .unwrap();
 
-    let surface_texture = SurfaceTexture::new(window.inner_size().width, window.inner_size().height, &window);
-    
-    let mut pixels = PixelsBuilder::new(WIDTH, HEIGHT, surface_texture)
-        .build()?;
+    // Create a surface texture to render to
+    let surface_texture = SurfaceTexture::new(
+        window.inner_size().width,
+        window.inner_size().height,
+        &window,
+    );
 
-    let mut t: u64 = 0;
+    // Create a pixelarray
+    let mut pixels: pixels::Pixels = PixelsBuilder::new(WIDTH, HEIGHT, surface_texture).build()?;
 
-    // let shape = create_3_cube();
-    // let shape = create_4_cube();
-    // let shape = create_3_sphere(1000);
-    let shape = create_4_sphere(1000);
+    // let mut t: u64 = 0;
 
-    event_loop.run(move | event, _, control_flow | {
+    // let mut shape = create_3_cube(1.0);
+    // let mut shape = create_4_cube(1.0);
+    // let mut shape = create_3_sphere(1000);
+    let mut shape = create_4_sphere(3200, 1.8);
+    // let mut shape = create_torus(100, 1.8);
+    // let mut shape = empty();
+
+    // shape.rotate(RotationPlane::get_rot_mat_4d(RotationPlane::YZ, PI / 2.0));
+    shape.scale(1.0);
+
+    event_loop.run(move |event, _, control_flow| {
         control_flow.set_poll();
 
         match event {
@@ -53,62 +63,49 @@ fn main() -> Result<(), Error> {
             } => {
                 // println!("Window closed");
                 control_flow.set_exit();
-            },
-            Event::WindowEvent { 
+            }
+            Event::WindowEvent {
                 event: WindowEvent::Resized(new_size),
-                .. 
+                ..
             } => {
                 // println!("Window resized");
                 pixels.resize_buffer(new_size.width, new_size.height);
                 pixels.resize_surface(new_size.width, new_size.height);
-            },
+            }
             Event::MainEventsCleared => {
                 window.request_redraw();
-            },
+            }
             Event::RedrawRequested(_) => {
-                t += 1;
+                // t += 1;
 
                 let screen = pixels.get_frame();
-                
-                for (_i, p) in screen.chunks_exact_mut(4).enumerate() {
-                    p.copy_from_slice(&[0x00, 0x00, 0x00, 0xff]);
-                }   
 
-                // Draw objects                
-                shape.draw(screen, window.inner_size(), t);
+                // Create an empty pixelbuffer to render to
+                screen.chunks_exact_mut(4).for_each(|p| {
+                    p.copy_from_slice(&[0x00, 0x00, 0x00, 0x00]);
+                });
 
-                // Render result
-                if pixels.render().map_err(|e| println!("pixels.render() failed: {}", e)).is_err() {
+                // Transform the object
+                shape.rotate(RotationPlane::get_rot_mat_4d(RotationPlane::YZ, PI / 512.0));
+
+                // Draw the object
+                shape.draw(
+                    screen,
+                    window.inner_size(),
+                    SCALE,
+                    simple_graphics::projection::Projection::Perspective,
+                );
+
+                // Display the result on the screen
+                if pixels
+                    .render()
+                    .map_err(|e| println!("pixels.render() failed: {}", e))
+                    .is_err()
+                {
                     control_flow.set_exit();
                 };
-            },
-            _ => ()
+            }
+            _ => (),
         }
     })
-}
-
-static SCREEN_MATRIX_3D: Matrix2x3 = Matrix2x3 {
-    x: Pos3D { x: 0.866, y: 0.0, z: -0.866 },
-    y: Pos3D { x: -0.5, y: -1.0, z: -0.5 },
-};
-
-// fn perspective(pos: Pos4D, size: PhysicalSize<u32>) -> Pos2D {
-//     let scale = 2.0;
-//     let bound = size.width.min(size.height) as f64 / 2.0;
-//     let zratio = pos.z / scale;
-
-//     Pos2D { 
-//         x: (size.width as f64  / 2.0 + (0.9 + zratio * 0.3) * bound * (pos.x / scale)).floor(), 
-//         y: (size.height as f64 / 2.0 - (0.9 + zratio * 0.3) * bound * (pos.y / scale)).floor(),
-//     }
-// }
-
-fn sterographic(pos: Pos4D, size: PhysicalSize<u32>) -> Pos2D {
-    let pos_4d = pos * (1.0 / pos.len());
-    let pos_3d = Pos3D {
-        x: pos_4d.x / (1.0 + pos_4d.w), 
-        y: pos_4d.y / (1.0 + pos_4d.w), 
-        z: pos_4d.z / (1.0 + pos_4d.w),
-    };
-    SCREEN_MATRIX_3D * pos_3d * SCALE + Pos2D { x: size.width as f64 / 2.0, y: size.height as f64 / 2.0 }
 }
