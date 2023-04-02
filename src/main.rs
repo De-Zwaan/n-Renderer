@@ -10,7 +10,7 @@ use winit::{
 };
 
 // Actual rendering code
-use simple_graphics::{pos::RotationPlane, shapes::*};
+use n_renderer::{pos::*, projection::Projection::*, render::*, shapes::*};
 
 const WIDTH: u32 = 600;
 const HEIGHT: u32 = 600;
@@ -43,15 +43,14 @@ fn main() -> Result<(), Error> {
 
     // let mut t: u64 = 0;
 
-    // let mut shape = create_3_cube(1.0);
+    let mut shape = create_3_cube(1.0);
     // let mut shape = create_4_cube(1.0);
     // let mut shape = create_3_sphere(1000);
-    let mut shape = create_4_sphere(3200, 1.8);
+    // let mut shape = create_4_sphere(3200, 1.8);
     // let mut shape = create_torus(100, 1.8);
     // let mut shape = empty();
 
     // shape.rotate(RotationPlane::get_rot_mat_4d(RotationPlane::YZ, PI / 2.0));
-    shape.scale(1.0);
 
     event_loop.run(move |event, _, control_flow| {
         control_flow.set_poll();
@@ -86,15 +85,10 @@ fn main() -> Result<(), Error> {
                 });
 
                 // Transform the object
-                shape.rotate(RotationPlane::get_rot_mat_4d(RotationPlane::YZ, PI / 512.0));
+                shape.rotate(RotationPlane::get_rot_mat_4d(RotationPlane::XZ, PI / 512.0));
 
                 // Draw the object
-                shape.draw(
-                    screen,
-                    window.inner_size(),
-                    SCALE,
-                    simple_graphics::projection::Projection::Perspective,
-                );
+                shape.draw(screen, window.inner_size(), SCALE, Perspective);
 
                 // Display the result on the screen
                 if pixels

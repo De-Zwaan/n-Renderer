@@ -1,5 +1,5 @@
 [package]
-name = "simple_graphics"
+name = "n_renderer"
 version = "0.1.0"
 edition = "2021"
 

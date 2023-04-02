@@ -3,6 +3,7 @@ use winit::dpi::PhysicalSize;
 pub mod matrix;
 pub mod pos;
 pub mod projection;
+pub mod render;
 pub mod shapes;
 
 /// Change the pixel at coordinate (x, y) to the provided color. This will mutate the pixelbuffer.
@@ -20,7 +21,8 @@ pub fn print_coord_in_pixelbuffer(
         // Update for every color
         if i * 4 < screen.len() && i * 4 > 0 {
             for c in 0..=3 {
-                screen[i * 4 + c] = (screen[i * 4 + c] as u32 + color[c] as u32).clamp(0, 255) as u8;
+                screen[i * 4 + c] =
+                    (screen[i * 4 + c] as u32 + color[c] as u32).clamp(0, 255) as u8;
             }
         }
     }
