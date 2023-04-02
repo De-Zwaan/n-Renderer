@@ -12,8 +12,8 @@ use winit::{
 // Actual rendering code
 use simple_graphics::{orbital::create_orbital_v2, pos::RotationPlane, shapes::*};
 
-const WIDTH: u32 = 1000;
-const HEIGHT: u32 = 1000;
+const WIDTH: u32 = 600;
+const HEIGHT: u32 = 600;
 
 const SCALE: f64 = 200.0;
 
@@ -48,11 +48,12 @@ fn main() -> Result<(), Error> {
     // let mut shape = create_3_sphere(1000);
     // let mut shape = create_4_sphere(3200, 1.8);
     // let mut shape = create_orbital(1000, 1.0, 2.0, 0.1);
-    let mut shape: Object = create_orbital_v2(50, 0.05, 8.0, 0.15, (4, 3, 1));
+    let mut shape: Object = create_orbital_v2(50, 0.1, 5.0, 0.15, (2, 1, 0));
     // let mut shape = create_torus(100, 1.8);
     // let mut shape = empty();
 
-    shape.scale(0.3);
+    // shape.rotate(RotationPlane::get_rot_mat_4d(RotationPlane::YZ, PI / 2.0));
+    shape.scale(1.0);
 
     event_loop.run(move |event, _, control_flow| {
         control_flow.set_poll();
@@ -87,7 +88,7 @@ fn main() -> Result<(), Error> {
                 });
 
                 // Transform the object
-                shape.rotate(RotationPlane::get_rot_mat_4d(RotationPlane::XZ, PI / 256.0));
+                shape.rotate(RotationPlane::get_rot_mat_4d(RotationPlane::YZ, PI / 512.0));
 
                 // Draw the object
                 shape.draw(

@@ -8,13 +8,15 @@ use complex::Complex;
 use crate::{
     pos::{Pos4D},
     shapes::{
-        Color::{self, Green, Purple},
+        Color::{self, Green, Red},
         Edge, Face, Node, Object,
     }, 
     orbital::complex::{
         Split, Exp
     }, Factorial,
 };
+
+use self::complex::AbsArg;
 
 fn cartesian_to_spherical(x: f64, y: f64, z: f64) -> (f64, f64, f64) {
     let r = (x * x + z * z + y * y).sqrt();
@@ -81,10 +83,6 @@ fn angular_wave_function(l: i32, m: i32, t: f64, p: f64, _a: f64) -> Complex {
     }
 }
 
-fn adapt(start_value: f32, end_value: f32, cutoff: f32) -> f32 {
-    ((cutoff - start_value.abs()) / (end_value.abs() - start_value.abs())).clamp(0.0, 1.0)
-}
-
 fn psi((n, l, m): (i32, i32, i32), (r, t, p): (f64, f64, f64), a: f64) -> Complex {
     radial_wave_function(n, l, r, a) * angular_wave_function(l, m, t, p, a)
 }
@@ -97,10 +95,10 @@ pub fn create_orbital_v2(res: usize, psi_min: f32, max: f64, a: f64, (n, l, m): 
     let s = (2, 0, 0);
     let pz = (2, 1, 0);
     let px = (2, 1, 1);
-    let py = (2, 1, -1);
+    // let py = (2, 1, -1);
     
     // Generate psi for a number of points inside a cube
-    let mut psi_generated: HashMap<(usize, usize, usize), f32> = HashMap::new();
+    let mut psi_generated: HashMap<(usize, usize, usize), Complex> = HashMap::new();
 
     for i in 0..res {
         println!(
@@ -118,14 +116,29 @@ pub fn create_orbital_v2(res: usize, psi_min: f32, max: f64, a: f64, (n, l, m): 
                 };
 
                 let sc: (f64, f64, f64) = cartesian_to_spherical(pos.x, pos.y, pos.z);
-                let sc_A: (f64, f64, f64) = cartesian_to_spherical(pos.x - 1.0, pos.y, pos.z);
-                let sc_B: (f64, f64, f64) = cartesian_to_spherical(pos.x + 1.0, pos.y, pos.z);
+                // let psi_d = psi((n, l, m), sc, a);
 
-                let psi_d = psi((4, 3, 1), sc, a);
-                let psi_A = psi(s, sc_A, a);
-                let psi_B = psi(s, sc_B, a);
+                // let cos_30: f64 = 3.0_f64.sqrt() / 2.0;
 
-                psi_generated.insert((i, j, k), (psi_d).Re() as f32);
+                // let sc_a: (f64, f64, f64) = cartesian_to_spherical(pos.x, pos.y, pos.z + 2.0);
+                // let sc_b: (f64, f64, f64) = cartesian_to_spherical(pos.x + 2.0 * cos_30, pos.y, pos.z + 1.0);
+                // let sc_c: (f64, f64, f64) = cartesian_to_spherical(pos.x + 2.0 * cos_30, pos.y, pos.z - 1.0);
+                // let sc_d: (f64, f64, f64) = cartesian_to_spherical(pos.x, pos.y, pos.z - 2.0);
+                // let sc_e: (f64, f64, f64) = cartesian_to_spherical(pos.x - 2.0 * cos_30, pos.y, pos.z - 1.0);
+                // let sc_f: (f64, f64, f64) = cartesian_to_spherical(pos.x - 2.0 * cos_30, pos.y, pos.z + 1.0);
+
+                let psi = psi(px, sc, a);
+                // let psi_a = psi(pz, sc_a, a);
+                // let psi_b = psi(pz, sc_b, a);
+                // let psi_c = psi(pz, sc_c, a);
+                // let psi_d = psi(pz, sc_d, a);
+                // let psi_e = psi(pz, sc_e, a);
+                // let psi_f = psi(pz, sc_f, a);
+
+                // let psi = psi((n, l, m), cartesian_to_spherical(pos.x, pos.y, pos.z), a).Re() as f32; 
+                // let psi = 0.5 * (psi_a + psi_b + psi_c + psi_d + psi_e + psi_f);
+
+                psi_generated.insert((i, j, k), psi);
             }
         }
     }
@@ -160,28 +173,28 @@ pub fn create_orbital_v2(res: usize, psi_min: f32, max: f64, a: f64, (n, l, m): 
 
                 // Store the values of psi of neighbouring nodes in a smaller array
                 let local_psi_generated = [
-                    *psi_generated.get(&(i, j, k)).unwrap_or(&0.0),
-                    *psi_generated.get(&(i + 1, j, k)).unwrap_or(&0.0),
-                    *psi_generated.get(&(i, j + 1, k)).unwrap_or(&0.0),
-                    *psi_generated.get(&(i + 1, j + 1, k)).unwrap_or(&0.0),
-                    *psi_generated.get(&(i, j, k + 1)).unwrap_or(&0.0),
-                    *psi_generated.get(&(i + 1, j, k + 1)).unwrap_or(&0.0),
-                    *psi_generated.get(&(i, j + 1, k + 1)).unwrap_or(&0.0),
-                    *psi_generated.get(&(i + 1, j + 1, k + 1)).unwrap_or(&0.0),
+                    *psi_generated.get(&(i, j, k)).unwrap_or(&Complex(0.0, 0.0)),
+                    *psi_generated.get(&(i + 1, j, k)).unwrap_or(&Complex(0.0, 0.0)),
+                    *psi_generated.get(&(i, j + 1, k)).unwrap_or(&Complex(0.0, 0.0)),
+                    *psi_generated.get(&(i + 1, j + 1, k)).unwrap_or(&Complex(0.0, 0.0)),
+                    *psi_generated.get(&(i, j, k + 1)).unwrap_or(&Complex(0.0, 0.0)),
+                    *psi_generated.get(&(i + 1, j, k + 1)).unwrap_or(&Complex(0.0, 0.0)),
+                    *psi_generated.get(&(i, j + 1, k + 1)).unwrap_or(&Complex(0.0, 0.0)),
+                    *psi_generated.get(&(i + 1, j + 1, k + 1)).unwrap_or(&Complex(0.0, 0.0)),
                 ];
 
                 let mut positive_byte: u8 = 0x0;
                 let mut negative_byte: u8 = 0x0;
                 // Encode the valid and invalid nodes of the cube into a byte
                 for (i, local_psi) in local_psi_generated.iter().enumerate() {
-                    positive_byte ^= ((*local_psi >= psi_min) as u8) << i;
-                    negative_byte ^= ((-*local_psi >= psi_min) as u8) << i;
+                    positive_byte ^= ((local_psi.abs().copysign(local_psi.Im()) >= psi_min as f64) as u8) << i;
+                    negative_byte ^= ((-local_psi.abs().copysign(local_psi.Im()) >= psi_min as f64) as u8) << i;
                 }
 
                 /// Function to run the marching cubes algorithm for a single cube and add the resulting nodes edges and faces to the object, transform the vectors that were input
-                fn run_marching_cubes(byte: u8, local_values: [f32; 8], cutoff: f32, pos: Pos4D, color: Color, size: f64, mut nodes: Vec<Node>, mut edges: Vec<Edge>, mut faces: Vec<Face>) -> (Vec<Node>, Vec<Edge>, Vec<Face>) {
+                fn run_marching_cubes(byte: u8, local_values: [Complex; 8], cutoff: f32, pos: Pos4D, color: Color, size: f64, mut nodes: Vec<Node>, mut edges: Vec<Edge>, mut faces: Vec<Face>) -> (Vec<Node>, Vec<Edge>, Vec<Face>) {
                     // Don't draw empty or filled cubes
-                    if byte == 0x00 && byte == 0xff {return (Vec::new(), Vec::new(), Vec::new())};
+                    // if byte == 0x00 && byte == 0xff {return (Vec::new(), Vec::new(), Vec::new())};
 
                     // Get the new nodes from the marching cubes algoritm
                     let (mut new_nodes, mut new_edges, mut new_faces) =
@@ -209,7 +222,7 @@ pub fn create_orbital_v2(res: usize, psi_min: f32, max: f64, a: f64, (n, l, m): 
                     (nodes, edges, faces)
                 }
 
-                let colors = [Purple, Green];
+                let colors = [Red, Green];
 
                 for (i, &byte) in [positive_byte, negative_byte].iter().enumerate() {
                     (nodes, edges, faces) = run_marching_cubes(byte, local_psi_generated, psi_min, pos, colors[i], max / res as f64, nodes, edges, faces);
@@ -218,9 +231,9 @@ pub fn create_orbital_v2(res: usize, psi_min: f32, max: f64, a: f64, (n, l, m): 
         }
     }
     
-    println!("Object contains {} points before optimisation...", nodes.len());
-    (nodes, edges, faces) = remove_duplicates(nodes, edges, faces, 0.01);
-    println!("Object contains {} points after optimisation...", nodes.len());
+    // println!("Object contains {} points before optimisation...", nodes.len());
+    // (nodes, edges, faces) = remove_duplicates(nodes, edges, faces, 0.01);
+    // println!("Object contains {} points after optimisation...", nodes.len());
 
     Object {
         nodes,
@@ -230,7 +243,7 @@ pub fn create_orbital_v2(res: usize, psi_min: f32, max: f64, a: f64, (n, l, m): 
 }
 
 fn marching_cubes(
-    value: [f32; 8],
+    value: [Complex; 8],
     cutoff: f32,
     byte: u8,
     pos: Pos4D,
@@ -261,30 +274,39 @@ fn marching_cubes(
         if face_edge_index[0] == -1 {break};
 
         // Get the positions of the vertices of the faces 
-        let face_vertices = face_edge_index.into_iter().map(| edge | edge_to_boundary_vertex(*edge, value, cutoff, pos, size)).collect::<Vec<Pos4D>>();
+        let face_vertices = face_edge_index.into_iter().map(| edge | edge_to_boundary_vertex(*edge as usize, value, cutoff, pos, size)).collect::<Vec<Pos4D>>();
         
         // Generate a new face
         let node_index_offset = nodes.len();
         faces.push(Face { node_a_index: node_index_offset, node_b_index: node_index_offset + 1, node_c_index: node_index_offset + 2, r: 0.5 });
 
         // Generate the new nodes
-        face_vertices.iter().for_each(|vertex| nodes.push(Node { pos: *vertex, r: 0.0, color }));
+        face_vertices.iter().for_each(|vertex| {
+            let [r, g, b, a] = color.get_rgba();
+            let node_color = Color::RGBA(r, g, (vertex.w as u8).clamp(0x00, 0xff), a);
+            nodes.push(Node { pos: *vertex, r: 0.0, color: node_color })
+        });
     }
 
     // Move the position of the vertex to the cutoff point
-    fn edge_to_boundary_vertex(edge_index: i8, value: [f32; 8], cutoff: f32, pos: Pos4D, size: f64) -> Pos4D {
-        let [vertex_0_index, vertex_1_index] = lookup::EDGE_VERTEX_INDICES[edge_index as usize];
-        let t0 = 1.0 - adapt(value[vertex_0_index as usize], value[vertex_1_index as usize], cutoff);
+    fn edge_to_boundary_vertex(edge_index: usize, value: [Complex; 8], cutoff: f32, pos: Pos4D, size: f64) -> Pos4D {
+        let [vertex_0_index, vertex_1_index] = lookup::EDGE_VERTEX_INDICES[edge_index];
+        let t0 = 1.0 - adapt(value[vertex_0_index], value[vertex_1_index], cutoff);
         let t1 = 1.0 - t0;
-        let vertex_0_pos = lookup::VERTEX_RELATIVE_POSITION[vertex_0_index as usize] * size;
-        let vertex_1_pos = lookup::VERTEX_RELATIVE_POSITION[vertex_1_index as usize] * size;
+        let vertex_0_pos = lookup::VERTEX_RELATIVE_POSITION[vertex_0_index as usize] * size + Pos4D { x: 0.0, y: 0.0, z: 0.0, w: value[vertex_0_index as usize].Im() };
+        let vertex_1_pos = lookup::VERTEX_RELATIVE_POSITION[vertex_1_index as usize] * size + Pos4D { x: 0.0, y: 0.0, z: 0.0, w: value[vertex_1_index as usize].Im() };
         
-        pos + vertex_0_pos * t0 as f64 + vertex_1_pos * t1 as f64 
+        pos + vertex_0_pos * t0 + vertex_1_pos * t1
+    }
+
+    fn adapt(start_value: Complex, end_value: Complex, cutoff: f32) -> f64 {
+        ((cutoff as f64 - start_value.abs()) / (end_value.abs() - start_value.abs())).clamp(0.0, 2.0)
     }
 
     (nodes, edges, faces)
 }
 
+/// Removes duplicate nodes from the nodes vector and updates the indices of the edges and faces
 fn remove_duplicates(nodes: Vec<Node>, edges: Vec<Edge>, faces: Vec<Face>, _threshold: f64) -> (Vec<Node>, Vec<Edge>, Vec<Face>) {
     let mut unique_nodes: Vec<Node> = Vec::new();
     let mut unique_edges: Vec<Edge> = Vec::new();
@@ -300,7 +322,7 @@ fn remove_duplicates(nodes: Vec<Node>, edges: Vec<Edge>, faces: Vec<Face>, _thre
         } else {
             unique_nodes.iter().position(|&unique_node| unique_node == node).unwrap()
         };
-        println!("Moved node from {} to {}", old_index, new_index);
+        // println!("Moved node from {} to {}", old_index, new_index);
         duplicated_nodes.insert(old_index, new_index);
     }
 

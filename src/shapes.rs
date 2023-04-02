@@ -22,7 +22,7 @@ pub enum Color {
 }
 
 impl Color {
-    fn get_rgba(&self) -> [u8; 4] {
+    pub fn get_rgba(&self) -> [u8; 4] {
         match self {
             Color::Red => [0xff, 0x00, 0x00, 0xff],
             Color::Orange => [0xff, 0xaa, 0x00, 0xff],
@@ -319,7 +319,7 @@ impl Render for Face {
         let a_to_c: Pos2D = pos_c + (pos_a * -1.0);
 
         // Change the alpha channel based on the angle between the camera and the surface
-        let alpha = (255.0 * angle_to_camera.clamp(0.0, 1.0)) as u8;
+        let alpha = 0xff; // (255.0 * angle_to_camera.clamp(0.0, 1.0)) as u8;
 
         // Get the colors from the three nodes of the face
         let a_color = node_a.color.get_rgba();

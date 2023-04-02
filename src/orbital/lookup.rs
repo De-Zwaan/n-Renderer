@@ -12,7 +12,7 @@ pub const VERTEX_RELATIVE_POSITION: [Pos4D; 8] = [
 ];
 
 // Pair of vertex indices for each edge on the cube
-pub const EDGE_VERTEX_INDICES: [[i32; 2]; 12] = [
+pub const EDGE_VERTEX_INDICES: [[usize; 2]; 12] = [
     [0, 1],
     [1, 3],
     [3, 2],
@@ -52,7 +52,7 @@ pub const _EDGE_MASKS: [i32; 256] = [
 ];
 
 // For each MC case, a list of triangles, specified as triples of edge indices, terminated by -1
-pub fn triangle_table(n: usize) -> Vec<i8> {
+pub fn triangle_table(n: usize) -> Vec<isize> {
     match n {
         0 => vec![-1],
         1 => vec![0, 3, 8, -1],

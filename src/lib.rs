@@ -21,7 +21,7 @@ pub fn print_coord_in_pixelbuffer(
         // Update for every color
         if i * 4 < screen.len() && i * 4 > 0 {
             for c in 0..=3 {
-                screen[i * 4 + c] = color[c];
+                screen[i * 4 + c] = (screen[i * 4 + c] as u32 + color[c] as u32).clamp(0, 255) as u8;
             }
         }
     }
