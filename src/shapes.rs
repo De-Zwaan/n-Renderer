@@ -74,157 +74,59 @@ pub fn create_3_cube(r: f64) -> Object {
 
     for i in 0..=1 {
         let z = (i as f64 - 0.5) * 2.0 * r;
+
         for j in 0..=1 {
             let y = (j as f64 - 0.5) * 2.0 * r;
+
             for k in 0..=1 {
                 let x = (k as f64 - 0.5) * 2.0 * r;
+
                 nodes.push(Node {
                     pos: Pos4D { x, y, z, w: 0.0 },
-                    r: 1.0,
+                    r: 0.0,
                     color: RGB(i * 255, j * 255, k * 255),
                 })
             }
         }
     }
 
+    const EDGE_INDECES: [(usize, usize); 12] = [
+        (0, 1), (0, 2), (0, 4), 
+        (3, 1), (3, 2),         (3, 7), 
+        (5, 1),         (5, 4), (5, 7),
+                (6, 2), (6, 4), (6, 7),
+    ];
+
+    let mut edges = Vec::new();
+    for index in EDGE_INDECES.iter() {
+        edges.push(Edge {
+            start_node_index: index.0,
+            end_node_index: index.1,
+            r: 0.0,
+        })
+    }
+
+    const FACE_INDECES: [(usize, usize, usize); 12] = [
+        (0, 1, 4), (0, 4, 2), (0, 2, 1), 
+        (3, 1, 2), (3, 2, 7), (1, 3, 7),
+        (5, 1, 7), (5, 4, 1), (5, 7, 4),
+        (6, 2, 4), (6, 4, 7), (6, 7, 2),
+    ];
+
+    let mut faces = Vec::new();
+    for index in FACE_INDECES.iter() {
+        faces.push(Face {
+            node_a_index: index.0,
+            node_b_index: index.1,
+            node_c_index: index.2,
+            r: 2.0,
+        })
+    }
+
     Object {
         nodes,
-        edges: vec![
-            Edge {
-                start_node_index: 0,
-                end_node_index: 1,
-                r: 1.0,
-            },
-            Edge {
-                start_node_index: 0,
-                end_node_index: 2,
-                r: 1.0,
-            },
-            Edge {
-                start_node_index: 0,
-                end_node_index: 4,
-                r: 1.0,
-            },
-            Edge {
-                start_node_index: 3,
-                end_node_index: 1,
-                r: 1.0,
-            },
-            Edge {
-                start_node_index: 3,
-                end_node_index: 2,
-                r: 1.0,
-            },
-            Edge {
-                start_node_index: 3,
-                end_node_index: 7,
-                r: 1.0,
-            },
-            Edge {
-                start_node_index: 5,
-                end_node_index: 1,
-                r: 1.0,
-            },
-            Edge {
-                start_node_index: 5,
-                end_node_index: 4,
-                r: 1.0,
-            },
-            Edge {
-                start_node_index: 5,
-                end_node_index: 7,
-                r: 1.0,
-            },
-            Edge {
-                start_node_index: 6,
-                end_node_index: 2,
-                r: 1.0,
-            },
-            Edge {
-                start_node_index: 6,
-                end_node_index: 4,
-                r: 1.0,
-            },
-            Edge {
-                start_node_index: 6,
-                end_node_index: 7,
-                r: 1.0,
-            },
-        ],
-        faces: vec![
-            Face {
-                node_a_index: 0,
-                node_b_index: 1,
-                node_c_index: 4,
-                r: 1.0,
-            },
-            Face {
-                node_a_index: 0,
-                node_b_index: 4,
-                node_c_index: 2,
-                r: 1.0,
-            },
-            Face {
-                node_a_index: 0,
-                node_b_index: 2,
-                node_c_index: 1,
-                r: 1.0,
-            },
-            Face {
-                node_a_index: 3,
-                node_b_index: 1,
-                node_c_index: 2,
-                r: 1.0,
-            },
-            Face {
-                node_a_index: 3,
-                node_b_index: 2,
-                node_c_index: 7,
-                r: 1.0,
-            },
-            Face {
-                node_a_index: 1,
-                node_b_index: 3,
-                node_c_index: 7,
-                r: 1.0,
-            },
-            Face {
-                node_a_index: 5,
-                node_b_index: 1,
-                node_c_index: 7,
-                r: 1.0,
-            },
-            Face {
-                node_a_index: 5,
-                node_b_index: 4,
-                node_c_index: 1,
-                r: 1.0,
-            },
-            Face {
-                node_a_index: 5,
-                node_b_index: 7,
-                node_c_index: 4,
-                r: 1.0,
-            },
-            Face {
-                node_a_index: 6,
-                node_b_index: 2,
-                node_c_index: 4,
-                r: 1.0,
-            },
-            Face {
-                node_a_index: 6,
-                node_b_index: 4,
-                node_c_index: 7,
-                r: 1.0,
-            },
-            Face {
-                node_a_index: 6,
-                node_b_index: 7,
-                node_c_index: 2,
-                r: 1.0,
-            },
-        ],
+        edges,
+        faces,
     }
 }
 
