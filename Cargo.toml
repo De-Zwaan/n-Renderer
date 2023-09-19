@@ -6,8 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pixels = "0.9.0"
-winit = "0.27.4"
+pixels = "0.13.0"
+winit = "0.28.6"
 
 # file size optinmailsations
 [profile.release]

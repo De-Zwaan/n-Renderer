@@ -12,8 +12,8 @@ use winit::{
 // Actual rendering code
 use n_renderer::{pos::*, projection::Projection::*, render::*, shapes::*};
 
-const WIDTH: u32 = 600;
-const HEIGHT: u32 = 600;
+const WIDTH: usize = 600;
+const HEIGHT: usize = 600;
 
 const SCALE: f64 = 200.0;
 
@@ -25,8 +25,7 @@ fn main() -> Result<(), Error> {
         .with_title("Spinny Spinny")
         // .with_decorations(false)
         .with_transparent(true)
-        .with_always_on_top(true)
-        .with_inner_size(LogicalSize::new(WIDTH, HEIGHT))
+        .with_inner_size(LogicalSize::new(WIDTH as u32, HEIGHT as u32))
         .with_resizable(false)
         .build(&event_loop)
         .unwrap();
@@ -39,7 +38,7 @@ fn main() -> Result<(), Error> {
     );
 
     // Create a pixelarray
-    let mut pixels: pixels::Pixels = PixelsBuilder::new(WIDTH, HEIGHT, surface_texture).build()?;
+    let mut pixels: pixels::Pixels = PixelsBuilder::new(WIDTH as u32, HEIGHT as u32, surface_texture).build()?;
 
     // let mut t: u64 = 0;
 
@@ -68,8 +67,8 @@ fn main() -> Result<(), Error> {
                 ..
             } => {
                 // println!("Window resized");
-                pixels.resize_buffer(new_size.width, new_size.height);
-                pixels.resize_surface(new_size.width, new_size.height);
+                let _ = pixels.resize_buffer(new_size.width, new_size.height);
+                let _ = pixels.resize_surface(new_size.width, new_size.height);
             }
             Event::MainEventsCleared => {
                 window.request_redraw();
@@ -77,7 +76,7 @@ fn main() -> Result<(), Error> {
             Event::RedrawRequested(_) => {
                 // t += 1;
 
-                let screen = pixels.get_frame();
+                let screen = pixels.frame_mut();
 
                 // Create an empty pixelbuffer to render to
                 screen.chunks_exact_mut(4).for_each(|p| {
