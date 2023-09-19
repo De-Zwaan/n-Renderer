@@ -76,6 +76,7 @@ impl Object {
     pub fn draw(
         &self,
         screen: &mut [u8],
+        depth_buffer: &mut [Option<f32>],
         size: PhysicalSize<u32>,
         projection_scale: f64,
         projection: Projection,
@@ -83,18 +84,18 @@ impl Object {
         // Iterate over all edges, vertices and faces of the object and draw them
         self.edges.iter().for_each(|edge| {
             if edge.r > 0.1 {
-                edge.draw(&self.nodes, screen, size, projection, projection_scale);
+                edge.draw(&self.nodes, screen, depth_buffer, size, projection, projection_scale);
             }
         });
 
         self.nodes.iter().for_each(|node| {
             if node.r > 0.1 {
-                node.draw(&self.nodes, screen, size, projection, projection_scale);
+                node.draw(&self.nodes, screen, depth_buffer, size, projection, projection_scale);
             }
         });
 
         self.faces.iter().for_each(|face| {
-            face.draw(&self.nodes, screen, size, projection, projection_scale);
+            face.draw(&self.nodes, screen, depth_buffer, size, projection, projection_scale);
         });
     }
 }
@@ -150,6 +151,7 @@ trait Render {
         &self,
         nodes: &[Node],
         screen: &mut [u8],
+        depth_buffer: &mut [Option<f32>],
         size: PhysicalSize<u32>,
         projection: Projection,
         projection_scale: f64,
@@ -159,8 +161,10 @@ trait Render {
     fn print_point(
         x: i32,
         y: i32,
+        z: f32,
         r: i32,
         screen: &mut [u8],
+        depth_buffer: &mut [Option<f32>],
         size: PhysicalSize<u32>,
         color: [u8; 4],
     ) {
@@ -169,7 +173,7 @@ trait Render {
                 let x_p = x + x_off;
                 let y_p = y + y_off;
 
-                print_coord_in_pixelbuffer(x_p, y_p, screen, size, color)
+                print_coord_in_pixelbuffer(x_p, y_p, z, screen, depth_buffer, size, color)
             }
         }
     }
@@ -194,6 +198,7 @@ impl Render for Node {
         &self,
         nodes: &[Node],
         screen: &mut [u8],
+        depth_buffer: &mut [Option<f32>],
         size: PhysicalSize<u32>,
         projection: Projection,
         projection_scale: f64,
@@ -204,7 +209,7 @@ impl Render for Node {
         // if self.pos.w != self.pos.w.clamp(0.9, 1.1) {return};
 
         // Transform the Node to screen coordinates
-        let pos: Pos2D = projection.project(self.pos, size, projection_scale);
+        let (pos, depth): (Pos2D, f64) = projection.project(self.pos, size, projection_scale);
 
         let r = self.r; //scale(self.pos, projection.get_camera_pos()) * self.r;
 
@@ -217,7 +222,7 @@ impl Render for Node {
             return;
         };
 
-        Self::print_point(pos.x as i32, pos.y as i32, r as i32, screen, size, rgba);
+        Self::print_point(pos.x as i32, pos.y as i32, depth as f32, r as i32, screen, depth_buffer, size, rgba);
     }
 }
 
@@ -226,6 +231,7 @@ impl Render for Edge {
         &self,
         nodes: &[Node],
         screen: &mut [u8],
+        depth_buffer: &mut [Option<f32>],
         size: PhysicalSize<u32>,
         projection: Projection,
         projection_scale: f64,
@@ -238,8 +244,8 @@ impl Render for Edge {
         let end_node: Node = nodes[self.end_node_index];
 
         // Calculate the screen coordinates of the start and end points
-        let screen_start_point: Pos2D = projection.project(start_node.pos, size, projection_scale);
-        let screen_end_point: Pos2D = projection.project(end_node.pos, size, projection_scale);
+        let (screen_start_point, start_depth): (Pos2D, f64) = projection.project(start_node.pos, size, projection_scale);
+        let (screen_end_point, end_depth): (Pos2D, f64) = projection.project(end_node.pos, size, projection_scale);
 
         // Calculate vector for line connecting start and end point
         let edge = {
@@ -266,23 +272,25 @@ impl Render for Edge {
             let x_p = (edge[0] * i as f64 / resolution) as i32 + screen_start_point.x as i32;
             let y_p = (edge[1] * i as f64 / resolution) as i32 + screen_start_point.y as i32;
 
+            let depth = ((end_depth - start_depth) * i as f64 / resolution) + start_depth;
+
             // Interpolate the radius of the points making up the edges
             let r =
                 (((end_point_r - start_point_r) * i as f64 / resolution) + start_point_r) as i32;
 
             let mut rgba: [u8; 4] = [0; 4];
-            for c in 0..=3 {
-                rgba[c] = (((end_color[c] - start_color[c]) as f64 * i as f64 / resolution)
-                    + start_color[c] as f64) as u8
+            for c in 0..4 {
+                rgba[c] = (((end_color[c] as f64 - start_color[c] as f64) * i as f64 / resolution)
+                    + start_color[c] as f64).max(0.0) as u8
             }
 
             // Change the blue channel of the edge based on the w coordiante
-            rgba[2] = (50.0
-                * (((end_node.pos.w - start_node.pos.w) * i as f64 / resolution
-                    + start_node.pos.w)
-                    + 2.5)) as u8;
+            // rgba[2] = (50.0
+            //     * (((end_node.pos.w - start_node.pos.w) * i as f64 / resolution
+            //         + start_node.pos.w)
+            //         + 2.5)) as u8;
 
-            Self::print_point(x_p, y_p, r, screen, size, rgba);
+            Self::print_point(x_p, y_p, depth as f32, r, screen, depth_buffer, size, rgba);
         }
     }
 }
@@ -292,6 +300,7 @@ impl Render for Face {
         &self,
         nodes: &[Node],
         screen: &mut [u8],
+        depth_buffer: &mut [Option<f32>],
         size: PhysicalSize<u32>,
         projection: Projection,
         projection_scale: f64,
@@ -321,9 +330,9 @@ impl Render for Face {
         }
 
         // Get the locations of the three nodes of the triangle
-        let pos_a: Pos2D = projection.project(node_a.pos, size, projection_scale);
-        let pos_b: Pos2D = projection.project(node_b.pos, size, projection_scale);
-        let pos_c: Pos2D = projection.project(node_c.pos, size, projection_scale);
+        let (pos_a, depth_a): (Pos2D, f64) = projection.project(node_a.pos, size, projection_scale);
+        let (pos_b, depth_b): (Pos2D, f64) = projection.project(node_b.pos, size, projection_scale);
+        let (pos_c, depth_c): (Pos2D, f64) = projection.project(node_c.pos, size, projection_scale);
 
         // Calculate 2d vectors between the points on the screen
         let a_to_b: Pos2D = pos_b + (pos_a * -1.0);
@@ -350,7 +359,7 @@ impl Render for Face {
             })
             .len();
 
-        let resolution: f64 = 0.3 * angle_to_camera.clamp(0.001, 1.0) * area.sqrt();
+        let resolution: f64 = 0.5 * angle_to_camera.clamp(0.001, 1.0) * area.sqrt();
 
         // http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/
         // let mut t: Vec<Pos2D> = Vec::new();
@@ -374,7 +383,7 @@ impl Render for Face {
         // }
 
         // Amount of offset to add between the edges of the faces to avoid overlap
-        let edge_offset = 0.5;
+        let edge_offset = 0.4;
 
         // Iterate over points on the surface of the face and print them to the screen
         for k1 in 0..=(resolution as i32) {
@@ -402,7 +411,9 @@ impl Render for Face {
                     + a_to_b * ((k1 as f64 + edge_offset) / resolution)
                     + a_to_c * ((k2 as f64 + edge_offset) / resolution);
 
-                Self::print_point(p.x as i32, p.y as i32, self.r as i32, screen, size, rgba);
+                let depth = depth_a + (depth_b - depth_a) * ((k1 as f64 + edge_offset) / resolution) + (depth_c - depth_a) * ((k2 as f64 + edge_offset) / resolution);
+
+                Self::print_point(p.x as i32, p.y as i32, depth as f32, self.r as i32, screen, depth_buffer, size, rgba);
             }
         }
     }

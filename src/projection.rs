@@ -77,7 +77,7 @@ impl Projection {
     /// let result = projection.project_to_2d(pos, size, scale);
     /// assert_eq!(result, Pos2D { x: 0.0, y: -2.0 });
     /// ```
-    pub fn project_to_2d(&self, pos: Pos3D, size: PhysicalSize<u32>, scale: f64) -> Pos2D {
+    pub fn project_to_2d(&self, pos: Pos3D, size: PhysicalSize<u32>, scale: f64) -> (Pos2D, f64) {
         static SCREEN_MATRIX_3D: Matrix2x3 = Matrix2x3 {
             x: Pos3D {
                 x: 0.866,
@@ -97,17 +97,35 @@ impl Projection {
                 let bound = size.width.min(size.height) as f64 / 2.0;
                 let zratio = 0.9 + (pos.z / scale) * 0.3;
 
-                Pos2D {
+                // Calculate the screen position of the pixel
+                let screen_pos = Pos2D {
                     x: (size.width as f64 / 2.0 - zratio * bound * (pos.x / scale)).floor(),
                     y: (size.height as f64 / 2.0 + zratio * bound * (pos.y / scale)).floor(),
-                }
+                };
+
+                // Calculate the screen depth of the pixel
+                let depth = {
+                    10.0 / 2.0 - zratio * bound * (pos.z / scale)
+                };
+
+                (screen_pos, depth)
             }
-            Stereographic => (SCREEN_MATRIX_3D * pos).to_screen_coords(scale, size),
-            Collapse => Pos2D { x: pos.x, y: pos.y }.to_screen_coords(scale, size),
+            Stereographic => {
+                let screen_pos = (SCREEN_MATRIX_3D * pos).to_screen_coords(scale, size);
+                let depth = 0.0;
+
+                (screen_pos, depth)
+            },
+            Collapse => {
+                let screen_pos = Pos2D { x: pos.x, y: pos.y }.to_screen_coords(scale, size);
+                let depth = pos.z / 10.0;
+
+                (screen_pos, depth)
+            },
         }
     }
 
-    pub fn project(&self, pos: Pos4D, size: PhysicalSize<u32>, scale: f64) -> Pos2D {
+    pub fn project(&self, pos: Pos4D, size: PhysicalSize<u32>, scale: f64) -> (Pos2D, f64) {
         self.project_to_2d(self.project_to_3d(pos), size, scale)
     }
 }

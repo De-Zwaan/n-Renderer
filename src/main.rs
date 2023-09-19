@@ -77,6 +77,7 @@ fn main() -> Result<(), Error> {
                 // t += 1;
 
                 let screen = pixels.frame_mut();
+                let mut depth_buffer = [None; WIDTH * HEIGHT];
 
                 // Create an empty pixelbuffer to render to
                 screen.chunks_exact_mut(4).for_each(|p| {
@@ -87,7 +88,7 @@ fn main() -> Result<(), Error> {
                 shape.rotate(RotationPlane::get_rot_mat_4d(RotationPlane::XZ, PI / 512.0));
 
                 // Draw the object
-                shape.draw(screen, window.inner_size(), SCALE, Perspective);
+                shape.draw(screen, &mut depth_buffer, window.inner_size(), SCALE, Perspective);
 
                 // Display the result on the screen
                 if pixels
