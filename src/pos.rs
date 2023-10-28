@@ -21,9 +21,9 @@ pub enum RotationPlane {
 }
 
 impl RotationPlane {
-    pub fn get_rot_mat_4d(plane: RotationPlane, angle: f64) -> Matrix4x4 {
-        let cos: f64 = angle.cos();
-        let sin: f64 = angle.sin();
+    pub fn get_rot_mat_4d(plane: RotationPlane, angle: f32) -> Matrix4x4 {
+        let cos: f32 = angle.cos();
+        let sin: f32 = angle.sin();
 
         use RotationPlane::*;
 
@@ -103,9 +103,9 @@ impl RotationPlane {
         }
     }
 
-    pub fn _get_rot_mat_3d(plane: RotationPlane, angle: f64) -> Matrix3x3 {
-        let cos: f64 = angle.cos();
-        let sin: f64 = angle.sin();
+    pub fn _get_rot_mat_3d(plane: RotationPlane, angle: f32) -> Matrix3x3 {
+        let cos: f32 = angle.cos();
+        let sin: f32 = angle.sin();
 
         use RotationPlane::*;
 
@@ -120,9 +120,9 @@ impl RotationPlane {
         }
     }
 
-    pub fn _get_rot_mat_2d(plane: RotationPlane, angle: f64) -> Matrix2x2 {
-        let cos: f64 = angle.cos();
-        let sin: f64 = angle.sin();
+    pub fn _get_rot_mat_2d(plane: RotationPlane, angle: f32) -> Matrix2x2 {
+        let cos: f32 = angle.cos();
+        let sin: f32 = angle.sin();
 
         use RotationPlane::*;
 
@@ -135,37 +135,37 @@ impl RotationPlane {
 }
 
 pub trait Len {
-    fn len(&self) -> f64;
+    fn len(&self) -> f32;
     fn is_empty(&self) -> bool;
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct Pos1D {
-    pub x: f64,
+    pub x: f32,
 }
 
 impl ops::Add for Pos1D {
     type Output = Pos1D;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let x: f64 = self.x + rhs.x;
+        let x: f32 = self.x + rhs.x;
 
         Self::Output { x }
     }
 }
 
-impl ops::Mul<f64> for Pos1D {
+impl ops::Mul<f32> for Pos1D {
     type Output = Pos1D;
 
-    fn mul(self, rhs: f64) -> Self::Output {
-        let x: f64 = self.x * rhs;
+    fn mul(self, rhs: f32) -> Self::Output {
+        let x: f32 = self.x * rhs;
 
         Self::Output { x }
     }
 }
 
 impl Len for Pos1D {
-    fn len(&self) -> f64 {
+    fn len(&self) -> f32 {
         self.x
     }
 
@@ -176,16 +176,16 @@ impl Len for Pos1D {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Pos2D {
-    pub x: f64,
-    pub y: f64,
+    pub x: f32,
+    pub y: f32,
 }
 
 impl ops::Add for Pos2D {
     type Output = Pos2D;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let x: f64 = self.x + rhs.x;
-        let y: f64 = self.y + rhs.y;
+        let x: f32 = self.x + rhs.x;
+        let y: f32 = self.y + rhs.y;
 
         Self::Output { x, y }
     }
@@ -195,26 +195,26 @@ impl ops::Sub for Pos2D {
     type Output = Pos2D;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        let x: f64 = self.x - rhs.x;
-        let y: f64 = self.y - rhs.y;
+        let x: f32 = self.x - rhs.x;
+        let y: f32 = self.y - rhs.y;
 
         Self::Output { x, y }
     }
 }
 
-impl ops::Mul<f64> for Pos2D {
+impl ops::Mul<f32> for Pos2D {
     type Output = Pos2D;
 
-    fn mul(self, rhs: f64) -> Self::Output {
-        let x: f64 = self.x * rhs;
-        let y: f64 = self.y * rhs;
+    fn mul(self, rhs: f32) -> Self::Output {
+        let x: f32 = self.x * rhs;
+        let y: f32 = self.y * rhs;
 
         Self::Output { x, y }
     }
 }
 
 impl Len for Pos2D {
-    fn len(&self) -> f64 {
+    fn len(&self) -> f32 {
         (self.x.powi(2) + self.y.powi(2)).sqrt()
     }
 
@@ -225,41 +225,41 @@ impl Len for Pos2D {
 
 impl Pos2D {
     /// Transform the rendered coordinates such that it is displayed in the center of the window
-    pub fn to_screen_coords(self, scale: f64, size: PhysicalSize<u32>) -> Pos2D {
+    pub fn to_screen_coords(self, scale: f32, size: PhysicalSize<u32>) -> Pos2D {
         self * scale
             + Pos2D {
-                x: size.width as f64 / 2.0,
-                y: size.height as f64 / 2.0,
+                x: size.width as f32 / 2.0,
+                y: size.height as f32 / 2.0,
             }
     }
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct Pos3D {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl ops::Add for Pos3D {
     type Output = Pos3D;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let x: f64 = self.x + rhs.x;
-        let y: f64 = self.y + rhs.y;
-        let z: f64 = self.z + rhs.z;
+        let x: f32 = self.x + rhs.x;
+        let y: f32 = self.y + rhs.y;
+        let z: f32 = self.z + rhs.z;
 
         Self::Output { x, y, z }
     }
 }
 
-impl ops::Mul<f64> for Pos3D {
+impl ops::Mul<f32> for Pos3D {
     type Output = Pos3D;
 
-    fn mul(self, rhs: f64) -> Self::Output {
-        let x: f64 = self.x * rhs;
-        let y: f64 = self.y * rhs;
-        let z: f64 = self.z * rhs;
+    fn mul(self, rhs: f32) -> Self::Output {
+        let x: f32 = self.x * rhs;
+        let y: f32 = self.y * rhs;
+        let z: f32 = self.z * rhs;
 
         Self::Output { x, y, z }
     }
@@ -270,9 +270,9 @@ impl ops::BitXor for Pos3D {
     type Output = Pos3D;
 
     fn bitxor(self, rhs: Pos3D) -> Self::Output {
-        let x: f64 = self.y * rhs.z - self.z * rhs.y;
-        let y: f64 = self.z * rhs.x - self.x * rhs.z;
-        let z: f64 = self.x * rhs.y - self.y * rhs.x;
+        let x: f32 = self.y * rhs.z - self.z * rhs.y;
+        let y: f32 = self.z * rhs.x - self.x * rhs.z;
+        let z: f32 = self.x * rhs.y - self.y * rhs.x;
 
         Self::Output { x, y, z }
     }
@@ -280,7 +280,7 @@ impl ops::BitXor for Pos3D {
 
 // Use >> operator as a dot product operator
 impl ops::Shr for Pos3D {
-    type Output = f64;
+    type Output = f32;
 
     fn shr(self, rhs: Self) -> Self::Output {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
@@ -288,7 +288,7 @@ impl ops::Shr for Pos3D {
 }
 
 impl Len for Pos3D {
-    fn len(&self) -> f64 {
+    fn len(&self) -> f32 {
         (self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
     }
 
@@ -299,17 +299,17 @@ impl Len for Pos3D {
 
 trait Transformation {
     fn swap(&self, first_index: usize, second_index: usize);
-    fn mult_row(&self, index: usize, factor: f64);
-    fn add_row(&self, first_index: usize, second_index: usize, factor: f64);
+    fn mult_row(&self, index: usize, factor: f32);
+    fn add_row(&self, first_index: usize, second_index: usize, factor: f32);
 }
 
 // trait Solve {
-//     fn gauss(&self, argument: [f64; 3]) -> [f64; 3];
+//     fn gauss(&self, argument: [f32; 3]) -> [f32; 3];
 //     fn inverse(&self) -> Self;
 //     fn transpose(&self) -> Self;
 // }
 
-// impl Transformation for [[f64; 3]; 3] {
+// impl Transformation for [[f32; 3]; 3] {
 
 //     fn swap(&self, first_index: usize, second_index: usize) {
 //         let swap = self[first_index];
@@ -317,37 +317,37 @@ trait Transformation {
 //         self[second_index] = swap;
 //     }
 
-//     fn mult_row(&self, index: usize, factor: f64) {
+//     fn mult_row(&self, index: usize, factor: f32) {
 //         for (i, v) in self[index].into_iter().enumerate() {
 //             self[index][i] = v * factor;
 //         }
 //     }
 
-//     fn add_row(&self, first_index: usize, second_index: usize, factor: f64) {
+//     fn add_row(&self, first_index: usize, second_index: usize, factor: f32) {
 //         for (i, _) in self[first_index].into_iter().enumerate() {
 //             self[first_index][i] += self[second_index][i] * factor;
 //         }
 //     }
 // }
 
-// impl Transformation for [f64; 3] {
+// impl Transformation for [f32; 3] {
 //     fn swap(&self, first_index: usize, second_index: usize) {
 //         let swap = self[first_index];
 //         self[first_index] = self[second_index];
 //         self[second_index] = swap;
 //     }
 
-//     fn mult_row(&self, index: usize, factor: f64) {
+//     fn mult_row(&self, index: usize, factor: f32) {
 //         self[index] *= factor;
 //     }
 
-//     fn add_row(&self, first_index: usize, second_index: usize, factor: f64) {
+//     fn add_row(&self, first_index: usize, second_index: usize, factor: f32) {
 //         self[first_index] += self[second_index] * factor;
 //     }
 // }
 
-// impl Solve for [[f64; 3]; 3] {
-//     fn gauss(&self, args: [f64; 3]) -> [f64; 3] {
+// impl Solve for [[f32; 3]; 3] {
+//     fn gauss(&self, args: [f32; 3]) -> [f32; 3] {
 //         let rows = self.transpose();
 //         let result =
 //         {
@@ -514,20 +514,20 @@ trait Transformation {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Pos4D {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
-    pub w: f64,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub w: f32,
 }
 
 impl ops::Add for Pos4D {
     type Output = Pos4D;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let x: f64 = self.x + rhs.x;
-        let y: f64 = self.y + rhs.y;
-        let z: f64 = self.z + rhs.z;
-        let w: f64 = self.w + rhs.w;
+        let x: f32 = self.x + rhs.x;
+        let y: f32 = self.y + rhs.y;
+        let z: f32 = self.z + rhs.z;
+        let w: f32 = self.w + rhs.w;
 
         Self::Output { x, y, z, w }
     }
@@ -537,32 +537,32 @@ impl ops::Sub for Pos4D {
     type Output = Pos4D;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        let x: f64 = rhs.x - self.x;
-        let y: f64 = rhs.y - self.y;
-        let z: f64 = rhs.z - self.z;
-        let w: f64 = rhs.w - self.w;
+        let x: f32 = rhs.x - self.x;
+        let y: f32 = rhs.y - self.y;
+        let z: f32 = rhs.z - self.z;
+        let w: f32 = rhs.w - self.w;
 
         Self::Output { x, y, z, w }
     }
 }
 
-impl ops::Mul<f64> for Pos4D {
+impl ops::Mul<f32> for Pos4D {
     type Output = Pos4D;
 
-    fn mul(self, rhs: f64) -> Self::Output {
-        let x: f64 = self.x * rhs;
-        let y: f64 = self.y * rhs;
-        let z: f64 = self.z * rhs;
-        let w: f64 = self.w * rhs;
+    fn mul(self, rhs: f32) -> Self::Output {
+        let x: f32 = self.x * rhs;
+        let y: f32 = self.y * rhs;
+        let z: f32 = self.z * rhs;
+        let w: f32 = self.w * rhs;
 
         Self::Output { x, y, z, w }
     }
 }
 
-impl ops::Div<f64> for Pos4D {
+impl ops::Div<f32> for Pos4D {
     type Output = Pos4D;
 
-    fn div(self, rhs: f64) -> Self::Output {
+    fn div(self, rhs: f32) -> Self::Output {
         self * (1.0 / rhs)
     }
 }
@@ -572,10 +572,10 @@ impl ops::BitXor for Pos4D {
     type Output = Pos4D;
 
     fn bitxor(self, rhs: Pos4D) -> Self::Output {
-        let x: f64 = self.y * rhs.z - self.z * rhs.y;
-        let y: f64 = self.z * rhs.w - self.w * rhs.z;
-        let z: f64 = self.w * rhs.x - self.x * rhs.w;
-        let w: f64 = self.x * rhs.y - self.y * rhs.x;
+        let x: f32 = self.y * rhs.z - self.z * rhs.y;
+        let y: f32 = self.z * rhs.w - self.w * rhs.z;
+        let z: f32 = self.w * rhs.x - self.x * rhs.w;
+        let w: f32 = self.x * rhs.y - self.y * rhs.x;
 
         Pos4D { x, y, z, w }
     }
@@ -583,7 +583,7 @@ impl ops::BitXor for Pos4D {
 
 // Use >> operator as a dot product operator
 impl ops::Shr for Pos4D {
-    type Output = f64;
+    type Output = f32;
 
     fn shr(self, rhs: Self) -> Self::Output {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w * rhs.w
@@ -591,7 +591,7 @@ impl ops::Shr for Pos4D {
 }
 
 impl Len for Pos4D {
-    fn len(&self) -> f64 {
+    fn len(&self) -> f32 {
         (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2)).sqrt()
     }
 

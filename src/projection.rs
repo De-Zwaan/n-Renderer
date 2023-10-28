@@ -77,7 +77,7 @@ impl Projection {
     /// let result = projection.project_to_2d(pos, size, scale);
     /// assert_eq!(result, Pos2D { x: 0.0, y: -2.0 });
     /// ```
-    pub fn project_to_2d(&self, pos: Pos3D, size: PhysicalSize<u32>, scale: f64) -> (Pos2D, f64) {
+    pub fn project_to_2d(&self, pos: Pos3D, size: PhysicalSize<u32>, scale: f32) -> (Pos2D, f32) {
         static SCREEN_MATRIX_3D: Matrix2x3 = Matrix2x3 {
             x: Pos3D {
                 x: 0.866,
@@ -94,13 +94,13 @@ impl Projection {
         match self {
             Perspective => {
                 let scale = 2.0;
-                let bound = size.width.min(size.height) as f64 / 2.0;
+                let bound = size.width.min(size.height) as f32 / 2.0;
                 let zratio = 0.9 + (pos.z / scale) * 0.3;
 
                 // Calculate the screen position of the pixel
                 let screen_pos = Pos2D {
-                    x: (size.width as f64 / 2.0 - zratio * bound * (pos.x / scale)).floor(),
-                    y: (size.height as f64 / 2.0 + zratio * bound * (pos.y / scale)).floor(),
+                    x: (size.width as f32 / 2.0 - zratio * bound * (pos.x / scale)).floor(),
+                    y: (size.height as f32 / 2.0 + zratio * bound * (pos.y / scale)).floor(),
                 };
 
                 // Calculate the screen depth of the pixel
@@ -125,7 +125,7 @@ impl Projection {
         }
     }
 
-    pub fn project(&self, pos: Pos4D, size: PhysicalSize<u32>, scale: f64) -> (Pos2D, f64) {
+    pub fn project(&self, pos: Pos4D, size: PhysicalSize<u32>, scale: f32) -> (Pos2D, f32) {
         self.project_to_2d(self.project_to_3d(pos), size, scale)
     }
 }

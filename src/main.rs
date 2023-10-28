@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::f32::consts::PI;
 
 // Crates for window managment
 use pixels::{Error, PixelsBuilder, SurfaceTexture};
@@ -15,7 +15,7 @@ use n_renderer::{pos::*, projection::Projection::*, render::*, shapes::*};
 const WIDTH: usize = 600;
 const HEIGHT: usize = 600;
 
-const SCALE: f64 = 200.0;
+const SCALE: f32 = 200.0;
 
 fn main() -> Result<(), Error> {
     let event_loop = EventLoop::new();

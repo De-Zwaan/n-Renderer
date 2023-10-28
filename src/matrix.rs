@@ -81,7 +81,7 @@ pub struct Matrix4x4 {
 
 // Constructors for all matrices
 impl Matrix1x2 {
-    pub fn new(c: [f64; 2]) -> Self {
+    pub fn new(c: [f32; 2]) -> Self {
         let x: Pos2D = Pos2D { x: c[0], y: c[1] };
 
         Self { x }
@@ -89,7 +89,7 @@ impl Matrix1x2 {
 }
 
 impl Matrix1x3 {
-    pub fn new(c: [f64; 3]) -> Self {
+    pub fn new(c: [f32; 3]) -> Self {
         let x: Pos3D = Pos3D {
             x: c[0],
             y: c[1],
@@ -101,7 +101,7 @@ impl Matrix1x3 {
 }
 
 impl Matrix1x4 {
-    pub fn new(c: [f64; 4]) -> Self {
+    pub fn new(c: [f32; 4]) -> Self {
         let x: Pos4D = Pos4D {
             x: c[0],
             y: c[1],
@@ -114,7 +114,7 @@ impl Matrix1x4 {
 }
 
 impl Matrix2x2 {
-    pub fn new(c: [[f64; 2]; 2]) -> Self {
+    pub fn new(c: [[f32; 2]; 2]) -> Self {
         let x: Pos2D = Pos2D {
             x: c[0][0],
             y: c[0][1],
@@ -129,7 +129,7 @@ impl Matrix2x2 {
 }
 
 impl Matrix2x3 {
-    pub fn new(c: [[f64; 3]; 2]) -> Self {
+    pub fn new(c: [[f32; 3]; 2]) -> Self {
         let x: Pos3D = Pos3D {
             x: c[0][0],
             y: c[0][1],
@@ -146,7 +146,7 @@ impl Matrix2x3 {
 }
 
 impl Matrix2x4 {
-    pub fn new(c: [[f64; 4]; 2]) -> Self {
+    pub fn new(c: [[f32; 4]; 2]) -> Self {
         let x: Pos4D = Pos4D {
             x: c[0][0],
             y: c[0][1],
@@ -165,7 +165,7 @@ impl Matrix2x4 {
 }
 
 impl Matrix3x2 {
-    pub fn new(c: [[f64; 2]; 3]) -> Self {
+    pub fn new(c: [[f32; 2]; 3]) -> Self {
         let x: Pos2D = Pos2D {
             x: c[0][0],
             y: c[0][1],
@@ -184,7 +184,7 @@ impl Matrix3x2 {
 }
 
 impl Matrix3x3 {
-    pub fn new(c: [[f64; 3]; 3]) -> Self {
+    pub fn new(c: [[f32; 3]; 3]) -> Self {
         let x: Pos3D = Pos3D {
             x: c[0][0],
             y: c[0][1],
@@ -206,7 +206,7 @@ impl Matrix3x3 {
 }
 
 impl Matrix3x4 {
-    pub fn new(c: [[f64; 4]; 3]) -> Self {
+    pub fn new(c: [[f32; 4]; 3]) -> Self {
         let x: Pos4D = Pos4D {
             x: c[0][0],
             y: c[0][1],
@@ -231,7 +231,7 @@ impl Matrix3x4 {
 }
 
 impl Matrix4x2 {
-    pub fn new(c: [[f64; 2]; 4]) -> Self {
+    pub fn new(c: [[f32; 2]; 4]) -> Self {
         let x: Pos2D = Pos2D {
             x: c[0][0],
             y: c[0][1],
@@ -254,7 +254,7 @@ impl Matrix4x2 {
 }
 
 impl Matrix4x3 {
-    pub fn new(c: [[f64; 3]; 4]) -> Self {
+    pub fn new(c: [[f32; 3]; 4]) -> Self {
         let x: Pos3D = Pos3D {
             x: c[0][0],
             y: c[0][1],
@@ -281,7 +281,7 @@ impl Matrix4x3 {
 }
 
 impl Matrix4x4 {
-    pub fn new(c: [[f64; 4]; 4]) -> Self {
+    pub fn new(c: [[f32; 4]; 4]) -> Self {
         let x: Pos4D = Pos4D {
             x: c[0][0],
             y: c[0][1],
@@ -451,10 +451,10 @@ impl ops::Add for Matrix4x4 {
 }
 
 // Multiplication for 1x2 matrix
-impl ops::Mul<f64> for Matrix1x2 {
+impl ops::Mul<f32> for Matrix1x2 {
     type Output = Matrix1x2;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         let x: Pos2D = self.x * rhs;
 
         Self::Output { x }
@@ -462,7 +462,7 @@ impl ops::Mul<f64> for Matrix1x2 {
 }
 
 impl ops::Mul<Pos2D> for Matrix1x2 {
-    type Output = f64;
+    type Output = f32;
 
     fn mul(self, rhs: Pos2D) -> Self::Output {
         self.x.x * rhs.x + self.x.y * rhs.y
@@ -512,10 +512,10 @@ impl ops::Mul<Matrix2x4> for Matrix1x2 {
 }
 
 // Multiplication for 1x3 matrix
-impl ops::Mul<f64> for Matrix1x3 {
+impl ops::Mul<f32> for Matrix1x3 {
     type Output = Matrix1x3;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         let x: Pos3D = self.x * rhs;
 
         Self::Output { x }
@@ -523,7 +523,7 @@ impl ops::Mul<f64> for Matrix1x3 {
 }
 
 impl ops::Mul<Pos3D> for Matrix1x3 {
-    type Output = f64;
+    type Output = f32;
 
     fn mul(self, rhs: Pos3D) -> Self::Output {
         self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z
@@ -573,10 +573,10 @@ impl ops::Mul<Matrix3x4> for Matrix1x3 {
 }
 
 // Multiplication for 1x4 matrix
-impl ops::Mul<f64> for Matrix1x4 {
+impl ops::Mul<f32> for Matrix1x4 {
     type Output = Matrix1x4;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         let x: Pos4D = self.x * rhs;
 
         Self::Output { x }
@@ -584,7 +584,7 @@ impl ops::Mul<f64> for Matrix1x4 {
 }
 
 impl ops::Mul<Pos4D> for Matrix1x4 {
-    type Output = f64;
+    type Output = f32;
 
     fn mul(self, rhs: Pos4D) -> Self::Output {
         self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z + self.x.w * rhs.w
@@ -692,10 +692,10 @@ impl ops::Mul<Matrix1x4> for Pos2D {
 }
 
 // Multiplication for 2x2 matrix
-impl ops::Mul<f64> for Matrix2x2 {
+impl ops::Mul<f32> for Matrix2x2 {
     type Output = Matrix2x2;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         let x: Pos2D = self.x * rhs;
         let y: Pos2D = self.y * rhs;
 
@@ -707,8 +707,8 @@ impl ops::Mul<Pos2D> for Matrix2x2 {
     type Output = Pos2D;
 
     fn mul(self, rhs: Pos2D) -> Self::Output {
-        let x: f64 = self.x.x * rhs.x + self.x.y * rhs.y;
-        let y: f64 = self.y.x * rhs.x + self.y.y * rhs.y;
+        let x: f32 = self.x.x * rhs.x + self.x.y * rhs.y;
+        let y: f32 = self.y.x * rhs.x + self.y.y * rhs.y;
 
         Self::Output { x, y }
     }
@@ -772,10 +772,10 @@ impl ops::Mul<Matrix2x4> for Matrix2x2 {
 }
 
 // Multiplication for 2x3 matrix
-impl ops::Mul<f64> for Matrix2x3 {
+impl ops::Mul<f32> for Matrix2x3 {
     type Output = Matrix2x3;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         let x: Pos3D = self.x * rhs;
         let y: Pos3D = self.y * rhs;
 
@@ -787,8 +787,8 @@ impl ops::Mul<Pos3D> for Matrix2x3 {
     type Output = Pos2D;
 
     fn mul(self, rhs: Pos3D) -> Self::Output {
-        let x: f64 = self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z;
-        let y: f64 = self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z;
+        let x: f32 = self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z;
+        let y: f32 = self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z;
 
         Self::Output { x, y }
     }
@@ -852,10 +852,10 @@ impl ops::Mul<Matrix3x4> for Matrix2x3 {
 }
 
 // Multiplication for 2x4 matrix
-impl ops::Mul<f64> for Matrix2x4 {
+impl ops::Mul<f32> for Matrix2x4 {
     type Output = Matrix2x4;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         let x: Pos4D = self.x * rhs;
         let y: Pos4D = self.y * rhs;
 
@@ -867,8 +867,8 @@ impl ops::Mul<Pos4D> for Matrix2x4 {
     type Output = Pos2D;
 
     fn mul(self, rhs: Pos4D) -> Self::Output {
-        let x: f64 = self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z + self.x.w * rhs.w;
-        let y: f64 = self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z + self.y.w * rhs.w;
+        let x: f32 = self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z + self.x.w * rhs.w;
+        let y: f32 = self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z + self.y.w * rhs.w;
 
         Self::Output { x, y }
     }
@@ -1005,10 +1005,10 @@ impl ops::Mul<Matrix1x4> for Pos3D {
 }
 
 // Multiplication for 3x2 matrix
-impl ops::Mul<f64> for Matrix3x2 {
+impl ops::Mul<f32> for Matrix3x2 {
     type Output = Matrix3x2;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         let x: Pos2D = self.x * rhs;
         let y: Pos2D = self.y * rhs;
         let z: Pos2D = self.z * rhs;
@@ -1021,9 +1021,9 @@ impl ops::Mul<Pos2D> for Matrix3x2 {
     type Output = Pos3D;
 
     fn mul(self, rhs: Pos2D) -> Self::Output {
-        let x: f64 = self.x.x * rhs.x + self.x.y * rhs.y;
-        let y: f64 = self.y.x * rhs.x + self.y.y * rhs.y;
-        let z: f64 = self.z.x * rhs.x + self.z.y * rhs.y;
+        let x: f32 = self.x.x * rhs.x + self.x.y * rhs.y;
+        let y: f32 = self.y.x * rhs.x + self.y.y * rhs.y;
+        let z: f32 = self.z.x * rhs.x + self.z.y * rhs.y;
 
         Self::Output { x, y, z }
     }
@@ -1102,10 +1102,10 @@ impl ops::Mul<Matrix2x4> for Matrix3x2 {
 }
 
 // Multiplication for 3x3 matrix
-impl ops::Mul<f64> for Matrix3x3 {
+impl ops::Mul<f32> for Matrix3x3 {
     type Output = Matrix3x3;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         let x: Pos3D = self.x * rhs;
         let y: Pos3D = self.y * rhs;
         let z: Pos3D = self.z * rhs;
@@ -1118,9 +1118,9 @@ impl ops::Mul<Pos3D> for Matrix3x3 {
     type Output = Pos3D;
 
     fn mul(self, rhs: Pos3D) -> Self::Output {
-        let x: f64 = self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z;
-        let y: f64 = self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z;
-        let z: f64 = self.z.x * rhs.x + self.z.y * rhs.y + self.z.z * rhs.z;
+        let x: f32 = self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z;
+        let y: f32 = self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z;
+        let z: f32 = self.z.x * rhs.x + self.z.y * rhs.y + self.z.z * rhs.z;
 
         Self::Output { x, y, z }
     }
@@ -1199,10 +1199,10 @@ impl ops::Mul<Matrix3x4> for Matrix3x3 {
 }
 
 // Multiplication for 3x4 matrix
-impl ops::Mul<f64> for Matrix3x4 {
+impl ops::Mul<f32> for Matrix3x4 {
     type Output = Matrix3x4;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         let x: Pos4D = self.x * rhs;
         let y: Pos4D = self.y * rhs;
         let z: Pos4D = self.z * rhs;
@@ -1215,9 +1215,9 @@ impl ops::Mul<Pos4D> for Matrix3x4 {
     type Output = Pos3D;
 
     fn mul(self, rhs: Pos4D) -> Self::Output {
-        let x: f64 = self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z + self.x.w * rhs.w;
-        let y: f64 = self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z + self.y.w * rhs.w;
-        let z: f64 = self.z.x * rhs.x + self.z.y * rhs.y + self.z.z * rhs.z + self.z.w * rhs.w;
+        let x: f32 = self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z + self.x.w * rhs.w;
+        let y: f32 = self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z + self.y.w * rhs.w;
+        let z: f32 = self.z.x * rhs.x + self.z.y * rhs.y + self.z.z * rhs.z + self.z.w * rhs.w;
 
         Self::Output { x, y, z }
     }
@@ -1384,10 +1384,10 @@ impl ops::Mul<Matrix1x4> for Pos4D {
 }
 
 // Multiplication for 4x2 matrix
-impl ops::Mul<f64> for Matrix4x2 {
+impl ops::Mul<f32> for Matrix4x2 {
     type Output = Matrix4x2;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         let x: Pos2D = self.x * rhs;
         let y: Pos2D = self.y * rhs;
         let z: Pos2D = self.z * rhs;
@@ -1401,10 +1401,10 @@ impl ops::Mul<Pos2D> for Matrix4x2 {
     type Output = Pos4D;
 
     fn mul(self, rhs: Pos2D) -> Self::Output {
-        let x: f64 = self.x.x * rhs.x + self.x.y * rhs.y;
-        let y: f64 = self.y.x * rhs.x + self.y.y * rhs.y;
-        let z: f64 = self.z.x * rhs.x + self.z.y * rhs.y;
-        let w: f64 = self.w.x * rhs.x + self.w.y * rhs.y;
+        let x: f32 = self.x.x * rhs.x + self.x.y * rhs.y;
+        let y: f32 = self.y.x * rhs.x + self.y.y * rhs.y;
+        let z: f32 = self.z.x * rhs.x + self.z.y * rhs.y;
+        let w: f32 = self.w.x * rhs.x + self.w.y * rhs.y;
 
         Self::Output { x, y, z, w }
     }
@@ -1498,10 +1498,10 @@ impl ops::Mul<Matrix2x4> for Matrix4x2 {
 }
 
 // Multiplication for 4x3 matrix
-impl ops::Mul<f64> for Matrix4x3 {
+impl ops::Mul<f32> for Matrix4x3 {
     type Output = Matrix4x3;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         let x: Pos3D = self.x * rhs;
         let y: Pos3D = self.y * rhs;
         let z: Pos3D = self.z * rhs;
@@ -1515,10 +1515,10 @@ impl ops::Mul<Pos3D> for Matrix4x3 {
     type Output = Pos4D;
 
     fn mul(self, rhs: Pos3D) -> Self::Output {
-        let x: f64 = self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z;
-        let y: f64 = self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z;
-        let z: f64 = self.z.x * rhs.x + self.z.y * rhs.y + self.z.z * rhs.z;
-        let w: f64 = self.w.x * rhs.x + self.w.y * rhs.y + self.w.z * rhs.z;
+        let x: f32 = self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z;
+        let y: f32 = self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z;
+        let z: f32 = self.z.x * rhs.x + self.z.y * rhs.y + self.z.z * rhs.z;
+        let w: f32 = self.w.x * rhs.x + self.w.y * rhs.y + self.w.z * rhs.z;
 
         Self::Output { x, y, z, w }
     }
@@ -1612,10 +1612,10 @@ impl ops::Mul<Matrix3x4> for Matrix4x3 {
 }
 
 // Multiplication for 4x4 matrix
-impl ops::Mul<f64> for Matrix4x4 {
+impl ops::Mul<f32> for Matrix4x4 {
     type Output = Matrix4x4;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
         let x: Pos4D = self.x * rhs;
         let y: Pos4D = self.y * rhs;
         let z: Pos4D = self.z * rhs;
@@ -1629,10 +1629,10 @@ impl ops::Mul<Pos4D> for Matrix4x4 {
     type Output = Pos4D;
 
     fn mul(self, rhs: Pos4D) -> Self::Output {
-        let x: f64 = self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z + self.x.w * rhs.w;
-        let y: f64 = self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z + self.y.w * rhs.w;
-        let z: f64 = self.z.x * rhs.x + self.z.y * rhs.y + self.z.z * rhs.z + self.z.w * rhs.w;
-        let w: f64 = self.w.x * rhs.x + self.w.y * rhs.y + self.w.z * rhs.z + self.w.w * rhs.w;
+        let x: f32 = self.x.x * rhs.x + self.x.y * rhs.y + self.x.z * rhs.z + self.x.w * rhs.w;
+        let y: f32 = self.y.x * rhs.x + self.y.y * rhs.y + self.y.z * rhs.z + self.y.w * rhs.w;
+        let z: f32 = self.z.x * rhs.x + self.z.y * rhs.y + self.z.z * rhs.z + self.z.w * rhs.w;
+        let w: f32 = self.w.x * rhs.x + self.w.y * rhs.y + self.w.z * rhs.z + self.w.w * rhs.w;
 
         Self::Output { x, y, z, w }
     }

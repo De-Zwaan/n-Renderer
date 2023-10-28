@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::f32::consts::PI;
 
 use crate::{
     pos::Pos4D,
@@ -14,7 +14,7 @@ pub fn empty() -> Object {
                 z: 0.0,
                 w: 0.0,
             },
-            r: 1.0,
+            r: 10,
             color: White,
         },
         Node {
@@ -24,7 +24,7 @@ pub fn empty() -> Object {
                 z: 0.0,
                 w: 0.0,
             },
-            r: 1.0,
+            r: 10,
             color: Red,
         },
         Node {
@@ -34,7 +34,7 @@ pub fn empty() -> Object {
                 z: 0.0,
                 w: 0.0,
             },
-            r: 1.0,
+            r: 10,
             color: Green,
         },
         Node {
@@ -44,7 +44,7 @@ pub fn empty() -> Object {
                 z: 1.0,
                 w: 0.0,
             },
-            r: 1.0,
+            r: 10,
             color: Blue,
         },
         Node {
@@ -54,7 +54,7 @@ pub fn empty() -> Object {
                 z: 0.0,
                 w: 1.0,
             },
-            r: 1.0,
+            r: 10,
             color: Purple,
         },
     ];
@@ -69,21 +69,21 @@ pub fn empty() -> Object {
     }
 }
 
-pub fn create_3_cube(r: f64) -> Object {
+pub fn create_3_cube(r: f32) -> Object {
     let mut nodes = Vec::new();
 
     for i in 0..=1 {
-        let z = (i as f64 - 0.5) * 2.0 * r;
+        let z = (i as f32 - 0.5) * 2.0 * r;
 
         for j in 0..=1 {
-            let y = (j as f64 - 0.5) * 2.0 * r;
+            let y = (j as f32 - 0.5) * 2.0 * r;
 
             for k in 0..=1 {
-                let x = (k as f64 - 0.5) * 2.0 * r;
+                let x = (k as f32 - 0.5) * 2.0 * r;
 
                 nodes.push(Node {
                     pos: Pos4D { x, y, z, w: 0.0 },
-                    r: 0.0,
+                    r: 0,
                     color: RGB(i * 255, j * 255, k * 255),
                 })
             }
@@ -102,7 +102,7 @@ pub fn create_3_cube(r: f64) -> Object {
         edges.push(Edge {
             start_node_index: index.0,
             end_node_index: index.1,
-            r: 0.0,
+            r: 0,
         })
     }
 
@@ -119,7 +119,7 @@ pub fn create_3_cube(r: f64) -> Object {
             node_a_index: index.0,
             node_b_index: index.1,
             node_c_index: index.2,
-            r: 2.0,
+            r: 20,
         })
     }
 
@@ -130,21 +130,21 @@ pub fn create_3_cube(r: f64) -> Object {
     }
 }
 
-pub fn create_4_cube(r: f64) -> Object {
+pub fn create_4_cube(r: f32) -> Object {
     let mut nodes: Vec<Node> = Vec::new();
 
     // Generate the shape
     for i in 0..=1 {
-        let w = (i as f64 - 0.5) * 2.0 * r;
+        let w = (i as f32 - 0.5) * 2.0 * r;
         for j in 0..=1 {
-            let z = (j as f64 - 0.5) * 2.0 * r;
+            let z = (j as f32 - 0.5) * 2.0 * r;
             for k in 0..=1 {
-                let y = (k as f64 - 0.5) * 2.0 * r;
+                let y = (k as f32 - 0.5) * 2.0 * r;
                 for l in 0..=1 {
-                    let x = (l as f64 - 0.5) * 2.0 * r;
+                    let x = (l as f32 - 0.5) * 2.0 * r;
                     nodes.push(Node {
                         pos: Pos4D { x, y, z, w },
-                        r: 1.0,
+                        r: 10,
                         color: White,
                     })
                 }
@@ -158,162 +158,162 @@ pub fn create_4_cube(r: f64) -> Object {
             Edge {
                 start_node_index: 0,
                 end_node_index: 1,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 0,
                 end_node_index: 2,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 0,
                 end_node_index: 4,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 0,
                 end_node_index: 8,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 3,
                 end_node_index: 1,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 3,
                 end_node_index: 2,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 3,
                 end_node_index: 7,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 3,
                 end_node_index: 11,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 5,
                 end_node_index: 1,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 5,
                 end_node_index: 4,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 5,
                 end_node_index: 7,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 5,
                 end_node_index: 13,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 6,
                 end_node_index: 2,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 6,
                 end_node_index: 4,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 6,
                 end_node_index: 7,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 6,
                 end_node_index: 14,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 9,
                 end_node_index: 1,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 9,
                 end_node_index: 8,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 9,
                 end_node_index: 11,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 9,
                 end_node_index: 13,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 10,
                 end_node_index: 2,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 10,
                 end_node_index: 8,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 10,
                 end_node_index: 11,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 10,
                 end_node_index: 14,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 12,
                 end_node_index: 4,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 12,
                 end_node_index: 8,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 12,
                 end_node_index: 13,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 12,
                 end_node_index: 14,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 15,
                 end_node_index: 7,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 15,
                 end_node_index: 11,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 15,
                 end_node_index: 13,
-                r: 1.0,
+                r: 10,
             },
             Edge {
                 start_node_index: 15,
                 end_node_index: 14,
-                r: 1.0,
+                r: 10,
             },
         ],
         faces: Vec::new(),
@@ -325,20 +325,20 @@ pub fn create_3_sphere(res: i32) -> Object {
     let edges: Vec<Edge> = Vec::new();
     let faces: Vec<Face> = Vec::new();
 
-    let phi = PI * (3.0 - (5.0_f64).sqrt());
+    let phi = PI * (3.0 - (5.0_f32).sqrt());
 
     for i in 0..res {
-        let y = 1.0 - (i as f64 / (res - 1) as f64) * 2.0;
+        let y = 1.0 - (i as f32 / (res - 1) as f32) * 2.0;
         let r = (1.0 - y * y).sqrt();
 
-        let theta = phi * i as f64;
+        let theta = phi * i as f32;
 
         let x = theta.cos() * r;
         let z = theta.sin() * r;
 
         nodes.push(Node {
             pos: Pos4D { x, y, z, w: 0.0 },
-            r: 1.0,
+            r: 10,
             color: Purple,
         })
     }
@@ -350,39 +350,39 @@ pub fn create_3_sphere(res: i32) -> Object {
     }
 }
 
-pub fn create_4_sphere(res: i32, r: f64) -> Object {
+pub fn create_4_sphere(res: i32, r: f32) -> Object {
     let mut nodes: Vec<Node> = Vec::new();
     let edges: Vec<Edge> = Vec::new();
     let faces: Vec<Face> = Vec::new();
 
-    let res_per_plane = (res as f64).sqrt() as i32;
+    let res_per_plane = (res as f32).sqrt() as i32;
 
     // XZ plane
     for i in 0..res_per_plane {
-        let cos_t: f64 = ((2.0 * PI) / res_per_plane as f64 * i as f64).cos();
-        let sin_t: f64 = ((2.0 * PI) / res_per_plane as f64 * i as f64).sin();
+        let cos_t: f32 = ((2.0 * PI) / res_per_plane as f32 * i as f32).cos();
+        let sin_t: f32 = ((2.0 * PI) / res_per_plane as f32 * i as f32).sin();
 
         // rotating Z plane
         for j in 0..res_per_plane {
-            let cos_r: f64 = ((2.0 * PI) / res_per_plane as f64 * j as f64).cos();
-            let sin_r: f64 = ((2.0 * PI) / res_per_plane as f64 * j as f64).sin();
+            let cos_r: f32 = ((2.0 * PI) / res_per_plane as f32 * j as f32).cos();
+            let sin_r: f32 = ((2.0 * PI) / res_per_plane as f32 * j as f32).sin();
 
             // rotating W plane
             for k in 0..res_per_plane {
-                let cos_s: f64 = ((2.0 * PI) / res_per_plane as f64 * k as f64).cos();
-                let sin_s: f64 = ((2.0 * PI) / res_per_plane as f64 * k as f64).sin();
+                let cos_s: f32 = ((2.0 * PI) / res_per_plane as f32 * k as f32).cos();
+                let sin_s: f32 = ((2.0 * PI) / res_per_plane as f32 * k as f32).sin();
 
-                let x: f64 = r * sin_t * sin_r * cos_s;
-                let z: f64 = r * sin_t * sin_r * sin_s;
+                let x: f32 = r * sin_t * sin_r * cos_s;
+                let z: f32 = r * sin_t * sin_r * sin_s;
 
-                let y: f64 = r * sin_t * cos_r;
-                let w: f64 = r * cos_t;
+                let y: f32 = r * sin_t * cos_r;
+                let w: f32 = r * cos_t;
 
                 let pos = Pos4D { x, y, z, w };
 
                 nodes.push(Node {
                     pos,
-                    r: 1.0,
+                    r: 10,
                     color: Purple,
                 });
             }
@@ -396,22 +396,22 @@ pub fn create_4_sphere(res: i32, r: f64) -> Object {
     }
 }
 
-pub fn create_torus(res: i32, r: f64) -> Object {
+pub fn create_torus(res: i32, r: f32) -> Object {
     let mut nodes: Vec<Node> = Vec::new();
     let edges: Vec<Edge> = Vec::new();
     let faces: Vec<Face> = Vec::new();
 
-    let major_r: f64 = r;
-    let minor_r: f64 = 0.5 * r;
+    let major_r: f32 = r;
+    let minor_r: f32 = 0.5 * r;
 
     // XZ plane
     for t in 0..res {
-        let cos_t: f64 = ((2.0 * PI) / res as f64 * t as f64).cos();
-        let sin_t: f64 = ((2.0 * PI) / res as f64 * t as f64).sin();
+        let cos_t: f32 = ((2.0 * PI) / res as f32 * t as f32).cos();
+        let sin_t: f32 = ((2.0 * PI) / res as f32 * t as f32).sin();
 
         for p in 0..res {
-            let cos_p: f64 = ((2.0 * PI) / res as f64 * p as f64).cos();
-            let sin_p: f64 = ((2.0 * PI) / res as f64 * p as f64).sin();
+            let cos_p: f32 = ((2.0 * PI) / res as f32 * p as f32).cos();
+            let sin_p: f32 = ((2.0 * PI) / res as f32 * p as f32).sin();
 
             let x = (major_r + minor_r * cos_t) * sin_p;
             let y = (major_r + minor_r * cos_t) * cos_p;
@@ -422,7 +422,7 @@ pub fn create_torus(res: i32, r: f64) -> Object {
 
             nodes.push(Node {
                 pos,
-                r: 1.0,
+                r: 10,
                 color: Purple,
             });
         }
