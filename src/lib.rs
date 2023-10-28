@@ -16,11 +16,15 @@ pub fn print_coord_in_pixelbuffer(
     size: PhysicalSize<u32>,
     color: [u8; 4],
 ) {
+    if x < 0 || (x as u32) > size.width || y < 0 || (y as u32) > size.height {return;}
+
     // Calculate the index of the current coordinate
-    if x <= size.width as i32 && x >= 0 && y <= size.height as i32 && y >= 0 {
-        let i = (y * size.width as i32) as usize + x as usize;
-        
-        if let Some(depth) = depth_buffer[i] {
+    let i = (y as usize * size.width as usize) as usize + x as usize;
+    
+    // If the index falls outside of the screen or depth buffer, return
+    if i > (size.width * size.height) as usize {return;}
+
+    if let &Some(depth) = &depth_buffer[i] {
             if depth > z {
                 update_color(screen, i, color);
                 
@@ -31,7 +35,10 @@ pub fn print_coord_in_pixelbuffer(
             update_color(screen, i, color);
             depth_buffer[i] = Some(z);
         }
-    }
+
+    // Show depth buffer
+    // let depth_value = (-z + 128.0).clamp(0.0, 256.0) as u8;
+    // update_color(screen, i, [depth_value; 4]);
 }
 
 fn update_color(screen: &mut [u8], i: usize, color: [u8; 4]) {
