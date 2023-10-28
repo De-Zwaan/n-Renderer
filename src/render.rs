@@ -16,6 +16,7 @@ pub enum Color {
     Black,
     RGBA(u8, u8, u8, u8),
     RGB(u8, u8, u8),
+    HSV(u16, u8, u8),
 }
 
 impl Color {
@@ -31,6 +32,34 @@ impl Color {
             Color::Black => [0x00, 0x00, 0x00, 0xff],
             Color::RGBA(r, g, b, a) => [*r, *g, *b, *a],
             Color::RGB(r, g, b) => [*r, *g, *b, 0xff],
+            Color::HSV(h, s, v) => {
+                let region = 3.0 * (*h / 180) as f32;
+                let c = *v as f32 * *s as f32;
+                let x = c * (1.0 - (region % 2.0 - 1.0).abs());
+        
+                let (r, g, b) = {
+                    if (0.0..1.0).contains(&region) {
+                        (c, x, 0.0)
+                    } else if (1.0..2.0).contains(&region) {
+                        (x, c, 0.0)
+                    } else if (2.0..3.0).contains(&region) {
+                        (0.0, c, x)
+                    } else if (3.0..4.0).contains(&region) {
+                        (0.0, x, c)
+                    } else if (4.0..5.0).contains(&region) {
+                        (x, 0.0, c)
+                    } else {
+                        (c, 0.0, x)
+                    }
+                };
+            
+                [
+                    ((r + (*v as f32 - c)) * 255.0).clamp(0.0, 255.0) as u8, 
+                    ((g + (*v as f32 - c)) * 255.0).clamp(0.0, 255.0) as u8, 
+                    ((b + (*v as f32 - c)) * 255.0).clamp(0.0, 255.0) as u8, 
+                    0xff,
+                ]
+            }
         }
     }
 }
@@ -73,17 +102,12 @@ impl Object {
         projection_scale: f32,
         projection: Projection,
     ) {
-        // Iterate over all edges, vertices and faces of the object and draw them
         self.edges.iter().for_each(|edge| {
-            if edge.r > 0.1 {
                 edge.draw(&self.nodes, screen, depth_buffer, size, projection, projection_scale);
-            }
         });
 
         self.nodes.iter().for_each(|node| {
-            if node.r > 0.1 {
                 node.draw(&self.nodes, screen, depth_buffer, size, projection, projection_scale);
-            }
         });
 
         self.faces.iter().for_each(|face| {
