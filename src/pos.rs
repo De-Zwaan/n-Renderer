@@ -1,4 +1,4 @@
-use std::ops;
+use std::{ops, hash::Hash};
 
 use winit::dpi::PhysicalSize;
 
@@ -599,3 +599,23 @@ impl Len for Pos4D {
         self.x == 0.0 && self.y == 0.0 && self.z == 0.0 && self.w == 0.0
     }
 }
+
+impl Hash for Pos4D {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        ((self.x * 100.0) as i64 * 73856093 + (self.y * 100.0) as i64 * 19349663 + (self.z * 100.0) as i64 * 83492791 + (self.w * 100.0) as i64).hash(state);
+    }
+}
+
+impl PartialEq for Pos4D {
+    fn eq(&self, other: &Self) -> bool {
+        // let mut hasher = DefaultHasher::new();
+
+        // self.hash(&mut hasher) == other.hash(&mut hasher)
+        (self.x * 100.0) as i64 == (other.x * 100.0) as i64 && 
+        (self.y * 100.0) as i64 == (other.y * 100.0) as i64 &&
+        (self.z * 100.0) as i64 == (other.z * 100.0) as i64 &&
+        (self.w * 100.0) as i64 == (other.w * 100.0) as i64
+    }
+}
+
+impl Eq for Pos4D {}

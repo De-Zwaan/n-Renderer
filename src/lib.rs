@@ -25,16 +25,16 @@ pub fn print_coord_in_pixelbuffer(
     if i > (size.width * size.height) as usize {return;}
 
     if let &Some(depth) = &depth_buffer[i] {
-            if depth > z {
-                update_color(screen, i, color);
-                
-                // Update the depth buffer
-                depth_buffer[i] = Some(z);
-            }
-        } else {
+        if depth > z {
             update_color(screen, i, color);
+
+            // Update the depth buffer
             depth_buffer[i] = Some(z);
         }
+    } else {
+        update_color(screen, i, color);
+        depth_buffer[i] = Some(z);
+    }
 
     // Show depth buffer
     // let depth_value = (-z + 128.0).clamp(0.0, 256.0) as u8;

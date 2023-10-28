@@ -4,7 +4,7 @@ use crate::pos::*;
 use crate::projection::Projection;
 use crate::{matrix::*, print_coord_in_pixelbuffer};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Color {
     Red,
     Orange,
@@ -101,15 +101,15 @@ impl Object {
         size: PhysicalSize<u32>,
         projection_scale: f32,
         projection: Projection,
-    ) {
+    ) {    
         self.edges.iter().for_each(|edge| {
-                edge.draw(&self.nodes, screen, depth_buffer, size, projection, projection_scale);
+            edge.draw(&self.nodes, screen, depth_buffer, size, projection, projection_scale);
         });
-
+    
         self.nodes.iter().for_each(|node| {
-                node.draw(&self.nodes, screen, depth_buffer, size, projection, projection_scale);
+            node.draw(&self.nodes, screen, depth_buffer, size, projection, projection_scale);
         });
-
+    
         self.faces.iter().for_each(|face| {
             face.draw(&self.nodes, screen, depth_buffer, size, projection, projection_scale);
         });
