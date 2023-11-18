@@ -2,7 +2,7 @@ use winit::dpi::PhysicalSize;
 
 use crate::pos::*;
 use crate::projection::Projection;
-use crate::{matrix::*, print_coord_in_pixelbuffer};
+use crate::print_coord_in_pixelbuffer;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Color {
@@ -110,7 +110,7 @@ impl Object {
         self.nodes.iter().for_each(|node| {
             node.draw(&self.nodes, &mut screen, &mut depth_buffer, size, projection, projection_scale);
         });
-    
+
         self.faces.iter().for_each(|face| {
             face.draw(&self.nodes, &mut screen, &mut depth_buffer, size, projection, projection_scale);
         });
@@ -143,12 +143,12 @@ trait Render {
         color: [u8; 4],
     ) {
         let rr = (r / 10.0) as i32;
-
+        
         for x_off in -rr..=rr {
             let x_p = x + x_off;
             for y_off in -rr..=rr {
                 let y_p = y + y_off;
-
+                    
                 print_coord_in_pixelbuffer(x_p, y_p, z, screen, depth_buffer, size, color);
             }
         }
@@ -312,72 +312,33 @@ impl Render for Face {
         let b_color = node_b.color.get_rgba();
         let c_color = node_c.color.get_rgba();
 
-        // Calculate the screen area of the face
-        let area = 0.5
-            * (Pos3D {
-                x: a_to_b.x,
-                y: a_to_b.y,
-                z: 0.0,
-            } ^ Pos3D {
-                x: a_to_c.x,
-                y: a_to_c.y,
-                z: 0.0,
-            })
-            .len();
-
-        let resolution: f32 = 0.5 * angle_to_camera.clamp(0.001, 1.0) * area.sqrt();
-
-        // http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/
-        // let mut t: Vec<Pos2D> = Vec::new();
-
-        // Define constants to generate points on a triangle
-        // const G: f32 = 1.0 / 1.32471795572;
-        // static ALPHA: Pos2D = Pos2D { x: G, y: G * G };
-
-        // for n in 1..((1.0 / resolution) as i32) {
-        //     t.push(ALPHA * n as f32)
-        // }
-
-        // for (_, p) in t.iter().enumerate() {
-        //     let mut pos: Pos2D = Pos2D { x: 0.0, y: 0.0 };
-        //     if p.x + p.y < 1.0 {
-        //         pos = pos_a + (Pos2D { x: 1.0, y: 0.0 } * p.x * 10.0) + (Pos2D { x: 1.0, y: 1.0 } * p.y * 10.0);
-        //     } else {
-        //         pos = pos_a + (Pos2D { x: 1.0, y: 1.0 } * (1.0 - p.x * 10.0)) + (Pos2D { x: 1.0, y: 1.0 } * (1.0 - p.y * 10.0));
-        //     }
-        //     Self::print_point(pos.x as i32, pos.y as i32, self.r as i32, screen, size, rgba)
-        // }
+        // Calculate triangle fill resolution based on angle to camera and length of edges
+        let resolution: f32 = 0.2 * angle_to_camera.clamp(0.001, 1.0);
+        let u_res: f32 = a_to_b.len() * resolution;
+        let v_res: f32 = a_to_c.len() * resolution;
 
         // Amount of offset to add between the edges of the faces to avoid overlap
         let edge_offset = 0.35;
 
         // Iterate over points on the surface of the face and print them to the screen
-        for k1 in 0..=(resolution as i32) {
-            for k2 in 0..=(resolution as i32) {
+        for k1 in 0..=(u_res as i32) {
+            for k2 in 0..=(v_res as i32) {
+                let u = (k1 as f32 + edge_offset) / u_res;
+                let v = (k2 as f32 + edge_offset) / v_res;
+
                 // Make sure it is a point on the triangle
-                if (k1 as f32 + edge_offset) / resolution + (k2 as f32 + edge_offset) / resolution
-                    > 1.0
-                {
-                    break;
-                }
+                if u + v > 1.0 {break;}
 
                 let mut rgba: [u8; 4] = [0; 4];
                 for c in 0..=3 {
-                    rgba[c] = (a_color[c] as f32
-                        + (b_color[c] as f32 - a_color[c] as f32)
-                            * ((k1 as f32 + edge_offset) / resolution)
-                        + (c_color[c] as f32 - a_color[c] as f32)
-                            * ((k2 as f32 + edge_offset) / resolution))
-                        as u8
+                    rgba[c] = (a_color[c] as f32 + (b_color[c] as f32 - a_color[c] as f32) * u + (c_color[c] as f32 - a_color[c] as f32) * v) as u8
                 }
 
                 rgba[3] = alpha;
 
-                let p = pos_a
-                    + a_to_b * ((k1 as f32 + edge_offset) / resolution)
-                    + a_to_c * ((k2 as f32 + edge_offset) / resolution);
+                let p = pos_a + a_to_b * u + a_to_c * v;
 
-                let depth = depth_a + (depth_b - depth_a) * ((k1 as f32 + edge_offset) / resolution) + (depth_c - depth_a) * ((k2 as f32 + edge_offset) / resolution);
+                let depth = depth_a + (depth_b - depth_a) * u + (depth_c - depth_a) * v;
 
                 Self::print_point(p.x as i32, p.y as i32, depth as f32, self.r as f32, screen, depth_buffer, size, rgba);
             }

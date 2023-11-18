@@ -10,7 +10,7 @@ use winit::{
 };
 
 // Actual rendering code
-use n_renderer::{pos::*, projection::Projection::*, render::*, shapes::*};
+use n_renderer::{pos::*, projection::Projection::*, transform::*, shapes::*};
 
 const WIDTH: usize = 600;
 const HEIGHT: usize = 600;
