@@ -64,6 +64,7 @@ impl Color {
     }
 }
 
+#[derive(Debug)]
 pub struct Object {
     pub nodes: Vec<Node>,
     pub edges: Vec<Edge>,
@@ -96,68 +97,25 @@ impl Object {
     /// Draw all edges, vertices and faces of the object
     pub fn draw(
         &self,
-        screen: &mut [u8],
-        depth_buffer: &mut [Option<f32>],
+        mut screen: Vec<u8>,
+        mut depth_buffer: Vec<Option<f32>>,
         size: PhysicalSize<u32>,
         projection_scale: f32,
         projection: Projection,
-    ) {    
+    ) -> (Vec<u8>, Vec<Option<f32>>) {    
         self.edges.iter().for_each(|edge| {
-            edge.draw(&self.nodes, screen, depth_buffer, size, projection, projection_scale);
+            edge.draw(&self.nodes, &mut screen, &mut depth_buffer, size, projection, projection_scale);
         });
     
         self.nodes.iter().for_each(|node| {
-            node.draw(&self.nodes, screen, depth_buffer, size, projection, projection_scale);
+            node.draw(&self.nodes, &mut screen, &mut depth_buffer, size, projection, projection_scale);
         });
     
         self.faces.iter().for_each(|face| {
-            face.draw(&self.nodes, screen, depth_buffer, size, projection, projection_scale);
+            face.draw(&self.nodes, &mut screen, &mut depth_buffer, size, projection, projection_scale);
         });
-    }
-}
 
-/// Trivial object transformations
-pub trait Transform<T, V>
-where
-    Self: Sized,
-{
-    /// Rotate an object using a rotation matrix
-    fn rotate(&mut self, rotation_matrix: T);
-
-    /// Move an object using a vector
-    fn r#move(&mut self, vector: V);
-
-    /// Scale an object using a 1D scalar
-    fn scale(&mut self, scalar: f32);
-}
-
-impl Transform<Matrix4x4, Pos4D> for Object {
-    fn rotate(&mut self, rotation_matrix: Matrix4x4) {
-        self.nodes
-            .iter_mut()
-            .for_each(|node| node.rotate(rotation_matrix));
-    }
-
-    fn r#move(&mut self, vector: Pos4D) {
-        self.nodes.iter_mut().for_each(|node| node.r#move(vector));
-    }
-
-    fn scale(&mut self, scale: f32) {
-        self.nodes.iter_mut().for_each(|node| node.scale(scale));
-    }
-}
-
-impl Transform<Matrix4x4, Pos4D> for Node {
-    fn rotate(&mut self, rotation_matrix: Matrix4x4) {
-        self.pos = rotation_matrix * self.pos;
-    }
-
-    fn r#move(&mut self, vector: Pos4D) {
-        self.pos = self.pos + vector;
-    }
-
-    fn scale(&mut self, scale: f32) {
-        self.pos = self.pos * scale;
+        (screen.clone(), depth_buffer.clone())
     }
 }
 
@@ -165,9 +123,9 @@ trait Render {
     /// Determine the screen coordinates of objects using certain transformations and insert them into the pixelbuffer
     fn draw(
         &self,
-        nodes: &[Node],
-        screen: &mut [u8],
-        depth_buffer: &mut [Option<f32>],
+        nodes: &Vec<Node>,
+        screen: &mut Vec<u8>,
+        depth_buffer: &mut Vec<Option<f32>>,
         size: PhysicalSize<u32>,
         projection: Projection,
         projection_scale: f32,
@@ -179,19 +137,19 @@ trait Render {
         y: i32,
         z: f32,
         r: f32,
-        screen: &mut [u8],
-        depth_buffer: &mut [Option<f32>],
+        screen: &mut Vec<u8>,
+        depth_buffer: &mut Vec<Option<f32>>,
         size: PhysicalSize<u32>,
         color: [u8; 4],
     ) {
         let rr = (r / 10.0) as i32;
 
         for x_off in -rr..=rr {
+            let x_p = x + x_off;
             for y_off in -rr..=rr {
-                let x_p = x + x_off;
                 let y_p = y + y_off;
 
-                print_coord_in_pixelbuffer(x_p, y_p, z, screen, depth_buffer, size, color)
+                print_coord_in_pixelbuffer(x_p, y_p, z, screen, depth_buffer, size, color);
             }
         }
     }
@@ -214,9 +172,9 @@ impl Render for Node {
     #[allow(unused_variables)]
     fn draw(
         &self,
-        nodes: &[Node],
-        screen: &mut [u8],
-        depth_buffer: &mut [Option<f32>],
+        nodes: &Vec<Node>,
+        screen: &mut Vec<u8>,
+        depth_buffer: &mut Vec<Option<f32>>,
         size: PhysicalSize<u32>,
         projection: Projection,
         projection_scale: f32,
@@ -240,9 +198,9 @@ impl Render for Node {
 impl Render for Edge {
     fn draw(
         &self,
-        nodes: &[Node],
-        screen: &mut [u8],
-        depth_buffer: &mut [Option<f32>],
+        nodes: &Vec<Node>,
+        screen: &mut Vec<u8>,
+        depth_buffer: &mut Vec<Option<f32>>,
         size: PhysicalSize<u32>,
         projection: Projection,
         projection_scale: f32,
@@ -307,13 +265,14 @@ impl Render for Edge {
 impl Render for Face {
     fn draw(
         &self,
-        nodes: &[Node],
-        screen: &mut [u8],
-        depth_buffer: &mut [Option<f32>],
+        nodes: &Vec<Node>,
+        screen: &mut Vec<u8>,
+        depth_buffer: &mut Vec<Option<f32>>,
         size: PhysicalSize<u32>,
         projection: Projection,
         projection_scale: f32,
     ) {
+        if self.r <= 0 {return;}
         let node_a = &nodes[self.node_a_index];
         let node_b = &nodes[self.node_b_index];
         let node_c = &nodes[self.node_c_index];

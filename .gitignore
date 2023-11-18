@@ -11,3 +11,4 @@ Cargo.lock
 
 # VScode debug files
 .vscode/
+renderer.code-workspace
