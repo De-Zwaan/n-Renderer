@@ -1,4 +1,4 @@
-use std::f32::consts::PI;
+use std::{f32::consts::PI, sync::{Arc, Mutex}};
 
 // Crates for window managment
 use pixels::{PixelsBuilder, SurfaceTexture};
@@ -10,12 +10,12 @@ use winit::{
 };
 
 // Actual rendering code
-use n_renderer::{pos::*, projection::Projection::*, transform::*, shapes::*};
+use n_renderer::{pos::{RotationAxis, RotationPlane}, projection::{Projection, ProjectionType::{self, *}}, render::Screen, shapes::*, transform::*};
 
 const WIDTH: usize = 600;
 const HEIGHT: usize = 600;
 
-const SCALE: f32 = 200.0;
+const SCALE: f32 = 0.7;
 
 fn main() -> Result<(), EventLoopError> {
     let event_loop = EventLoop::new().unwrap();
@@ -39,18 +39,18 @@ fn main() -> Result<(), EventLoopError> {
 
     // Create a pixelarray
     let mut pixels: pixels::Pixels = PixelsBuilder::new(WIDTH as u32, HEIGHT as u32, surface_texture).build().unwrap();
+    
+    // Create a pixelbuffer
+    let screen = Arc::new(Mutex::new(Screen::new(WIDTH, HEIGHT)));
 
-    // let mut t: u64 = 0;
+    let mut t: f32 = 0.0;
 
-    let mut shape = create_3_cube(1.0);
-    // let mut shape = create_4_cube(1.0);
+    // let shape = create_3_cube(0.5);
+    // let shape = create_4_cube(1.0);
     // let mut shape = create_3_sphere(1000);
-    // let mut shape = create_4_sphere(3200, 1.8);
+    let shape = create_4_sphere(1000, 1.8);
     // let mut shape = create_torus(100, 1.8);
     // let mut shape = empty();
-
-    // shape.rotate(RotationPlane::get_rot_mat_4d(RotationPlane::YZ, PI / 2.0));
-    shape.scale(0.65);
 
     event_loop.set_control_flow(ControlFlow::Poll);
 
@@ -64,12 +64,12 @@ fn main() -> Result<(), EventLoopError> {
                 control_flow.exit();
             },
             Event::WindowEvent {
-                event: WindowEvent::Resized(new_size),
+                event: WindowEvent::Resized(_new_size),
                 ..
             } => {
                 // println!("Window resized");
-                let _ = pixels.resize_buffer(new_size.width, new_size.height);
-                let _ = pixels.resize_surface(new_size.width, new_size.height);
+                // let _ = pixels.resize_buffer(new_size.width, new_size.height);
+                // let _ = pixels.resize_surface(new_size.width, new_size.height);
             },
             Event::AboutToWait => {
                 window.request_redraw();
@@ -78,20 +78,25 @@ fn main() -> Result<(), EventLoopError> {
                 event: WindowEvent::RedrawRequested,
                 ..
             } => {
-                let screen = vec![0x00; 4 * WIDTH * HEIGHT];
-                let depth_buffer = vec![None; WIDTH * HEIGHT];
+                {
+                    let mut screen_lock = screen.lock().unwrap();
+                    screen_lock.clear();
+                }
+
+                t += 0.1;
 
                 // Transform the object
-                shape.rotate(RotationPlane::get_rot_mat_4d(RotationPlane::XZ, PI / 512.0));
-                // let mut slice = shape.slice();
-                // slice.rotate(RotationPlane::get_rot_mat_4d(RotationPlane::XZ, PI / 2.0));
+                let rotated_shape = shape.rotate(RotationPlane::get_rot_mat_4d(RotationPlane::WX, PI / 16.0 * t));
 
                 // Draw the object
-                let (screen, _depth_buffer) = shape.draw(screen, depth_buffer, window.inner_size(), SCALE, Perspective);
+                rotated_shape.draw(Arc::clone(&screen), Projection::new(ProjectionType::Stereographic, 0.5 / SCALE));
 
-                pixels.frame_mut().clone_from_slice(screen.as_slice());
-
-                // Display the result on the screen
+                {
+                    let screen_lock = screen.lock().unwrap();
+                    let screen_slice = screen_lock.get_slice();
+                    pixels.frame_mut().copy_from_slice(screen_slice);
+                }
+                                // Display the result on the screen
                 if pixels
                     .render()
                     .map_err(|e| println!("pixels.render() failed: {}", e))

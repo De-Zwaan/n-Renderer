@@ -1,8 +1,13 @@
-use std::{ops, hash::Hash};
-
-use winit::dpi::PhysicalSize;
+use std::{hash::Hash, iter::Sum, ops::{self, Add, Sub}};
 
 use crate::matrix::{Matrix2x2, Matrix3x3, Matrix4x4};
+
+#[derive(Clone, Copy, Debug)]
+pub enum RotationAxis {
+    X,
+    Y,
+    Z,
+}
 
 #[derive(Clone, Copy, Debug)]
 pub enum RotationPlane {
@@ -21,6 +26,31 @@ pub enum RotationPlane {
 }
 
 impl RotationPlane {
+    pub fn get_rot_mat_3d(axis: RotationAxis, angle: f32) -> Matrix3x3 {
+        let cos: f32 = angle.cos();
+        let sin: f32 = angle.sin();
+
+        use RotationAxis::*;
+
+        match axis {
+            X => Matrix3x3::new([
+                [1.0, 0.0, 0.0],
+                [0.0, cos, sin],
+                [0.0, -sin, cos],
+            ]),
+            Y => Matrix3x3::new([
+                [cos, 0.0, sin], 
+                [0.0, 1.0, 0.0], 
+                [-sin, 0.0, cos]
+            ]),
+            Z => Matrix3x3::new([
+                [cos, sin, 0.0], 
+                [-sin, cos, 0.0], 
+                [0.0, 0.0, 1.0]
+            ]),
+        }
+    }
+
     pub fn get_rot_mat_4d(plane: RotationPlane, angle: f32) -> Matrix4x4 {
         let cos: f32 = angle.cos();
         let sin: f32 = angle.sin();
@@ -31,7 +61,7 @@ impl RotationPlane {
             XY => Matrix4x4::new([
                 [cos, sin, 0.0, 0.0],
                 [-sin, cos, 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 1.0, cos],
                 [0.0, 0.0, 0.0, 1.0],
             ]),
             XZ => Matrix4x4::new([
@@ -139,9 +169,19 @@ pub trait Len {
     fn is_empty(&self) -> bool;
 }
 
+pub trait Empty {
+    fn empty() -> Self;
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct Pos1D {
     pub x: f32,
+}
+
+impl Empty for Pos1D {
+    fn empty() -> Self {
+        Pos1D { x: 0.0 }
+    }
 }
 
 impl ops::Add for Pos1D {
@@ -178,6 +218,12 @@ impl Len for Pos1D {
 pub struct Pos2D {
     pub x: f32,
     pub y: f32,
+}
+
+impl Empty for Pos2D {
+    fn empty() -> Self {
+        Pos2D { x: 0.0, y: 0.0 }
+    }
 }
 
 impl ops::Add for Pos2D {
@@ -225,11 +271,11 @@ impl Len for Pos2D {
 
 impl Pos2D {
     /// Transform the rendered coordinates such that it is displayed in the center of the window
-    pub fn to_screen_coords(self, scale: f32, size: PhysicalSize<u32>) -> Pos2D {
+    pub fn to_screen_coords(self, scale: f32, size: (usize, usize)) -> Pos2D {
         self * scale
             + Pos2D {
-                x: size.width as f32 / 2.0,
-                y: size.height as f32 / 2.0,
+                x: size.0 as f32 / 2.0,
+                y: size.1 as f32 / 2.0,
             }
     }
 }
@@ -239,6 +285,24 @@ pub struct Pos3D {
     pub x: f32,
     pub y: f32,
     pub z: f32,
+}
+
+impl std::fmt::Display for Pos3D {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({:.2}, {:.2}, {:.2})", self.x, self.y, self.z)
+    }
+}
+
+impl Empty for Pos3D {
+    fn empty() -> Self {
+        Pos3D { x: 0.0, y: 0.0, z: 0.0 }
+    }
+}
+
+impl From<Pos3D> for Pos4D {
+    fn from(val: Pos3D) -> Self {
+        Pos4D { x: val.x, y: val.y, z: val.z, w: 0.0 }
+    }
 }
 
 impl ops::Add for Pos3D {
@@ -253,6 +317,42 @@ impl ops::Add for Pos3D {
     }
 }
 
+impl ops::AddAssign for Pos3D {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = self.add(rhs);
+    }
+}
+
+impl Sum for Pos3D {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        let mut total = Pos3D { x: 0.0, y: 0.0, z: 0.0};
+        iter.for_each(|p| total += p );
+        total
+    }
+}
+
+impl ops::Sub for Pos3D {
+    type Output = Pos3D;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        self + (rhs * -1.0)
+    }
+}
+
+impl ops::SubAssign for Pos3D {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = self.sub(rhs);
+    }
+}
+
+impl ops::Neg for Pos3D {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Pos3D { x: 0.0, y: 0.0, z: 0.0 } - self
+    }
+}
+
 impl ops::Mul<f32> for Pos3D {
     type Output = Pos3D;
 
@@ -262,6 +362,14 @@ impl ops::Mul<f32> for Pos3D {
         let z: f32 = self.z * rhs;
 
         Self::Output { x, y, z }
+    }
+}
+
+impl ops::Div<f32> for Pos3D {
+    type Output = Pos3D;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        self * (1.0 / rhs)
     }
 }
 
@@ -297,11 +405,27 @@ impl Len for Pos3D {
     }
 }
 
-trait Transformation {
-    fn swap(&self, first_index: usize, second_index: usize);
-    fn mult_row(&self, index: usize, factor: f32);
-    fn add_row(&self, first_index: usize, second_index: usize, factor: f32);
+impl Hash for Pos3D {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        ((self.x * 100.0) as i64 * 73856093 + (self.y * 100.0) as i64 * 19349663 + (self.z * 100.0) as i64 * 83492791).hash(state);
+    }
 }
+
+impl PartialEq for Pos3D {
+    fn eq(&self, other: &Self) -> bool {
+        (self.x * 100.0) as i64 == (other.x * 100.0) as i64 && 
+        (self.y * 100.0) as i64 == (other.y * 100.0) as i64 &&
+        (self.z * 100.0) as i64 == (other.z * 100.0) as i64
+    }
+}
+
+impl Eq for Pos3D {}
+
+// trait Transformation {
+//     fn swap(&self, first_index: usize, second_index: usize);
+//     fn mult_row(&self, index: usize, factor: f32);
+//     fn add_row(&self, first_index: usize, second_index: usize, factor: f32);
+// }
 
 // trait Solve {
 //     fn gauss(&self, argument: [f32; 3]) -> [f32; 3];
@@ -518,6 +642,18 @@ pub struct Pos4D {
     pub y: f32,
     pub z: f32,
     pub w: f32,
+}
+
+impl Empty for Pos4D {
+    fn empty() -> Self {
+        Pos4D { x: 0.0, y: 0.0, z: 0.0, w: 0.0 }
+    }
+}
+
+impl From<Pos4D> for Pos3D {
+    fn from(val: Pos4D) -> Self {
+        Pos3D { x: val.x, y: val.y, z: val.z }
+    }
 }
 
 impl ops::Add for Pos4D {

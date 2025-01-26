@@ -11,7 +11,8 @@ winit = { version = "0.29", default-features = false, features = ["rwh_05", "x11
 
 # file size optinmailsations
 [profile.release]
-strip = true
+debug = 1
+strip = false
 opt-level = "z"
 lto = true
 codegen-units = 1

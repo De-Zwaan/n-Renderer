@@ -1,8 +1,8 @@
-use winit::dpi::PhysicalSize;
+use std::usize;
 
-use crate::pos::*;
-use crate::projection::Projection;
-use crate::print_coord_in_pixelbuffer;
+use crate::object::{Node, Face};
+use crate::pos::{Len, Pos2D, Pos3D};
+use crate::projection::{Projection, Project2D, Project3D};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Color {
@@ -64,245 +64,197 @@ impl Color {
     }
 }
 
-#[derive(Debug)]
-pub struct Object {
-    pub nodes: Vec<Node>,
-    pub edges: Vec<Edge>,
-    pub faces: Vec<Face>,
+pub struct Screen {
+    color: Box<[[u8; 4]]>,
+    depth: Box<[Option<f32>]>,
+    width: usize,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
-pub struct Node {
-    pub pos: Pos4D,
-    pub color: Color,
-    pub r: u32,
-}
+impl Screen {
+    pub fn new(width: usize, height: usize) -> Self {
+        Self {
+            color: vec![[0x00; 4]; width * height].into_boxed_slice(),
+            depth: vec![None; width * height].into_boxed_slice(),
+            width,
+        }
+    }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
-pub struct Edge {
-    pub start_node_index: usize,
-    pub end_node_index: usize,
-    pub r: u32,
-}
+    pub fn clear(&mut self) {
+        self.color = vec![[0x00; 4]; self.color.len()].into_boxed_slice();
+        self.depth = vec![None; self.depth.len()].into_boxed_slice();
+    }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
-pub struct Face {
-    pub node_a_index: usize,
-    pub node_b_index: usize,
-    pub node_c_index: usize,
-    pub r: u32,
-}
+    #[allow(dead_code)]
+    fn get_color(&self, x: usize, y: usize) -> Result<[u8; 4], &'static str> {
+        let index = self.coord_to_index(x, y)?;
+        match self.color.get(index) {
+            Some(&p) => Ok(p),
+            None => Err("Failed to get pixel color from screen"),
+        }
+    }
 
-impl Object {
-    /// Draw all edges, vertices and faces of the object
-    pub fn draw(
-        &self,
-        mut screen: Vec<u8>,
-        mut depth_buffer: Vec<Option<f32>>,
-        size: PhysicalSize<u32>,
-        projection_scale: f32,
-        projection: Projection,
-    ) -> (Vec<u8>, Vec<Option<f32>>) {    
-        self.edges.iter().for_each(|edge| {
-            edge.draw(&self.nodes, &mut screen, &mut depth_buffer, size, projection, projection_scale);
-        });
-    
-        self.nodes.iter().for_each(|node| {
-            node.draw(&self.nodes, &mut screen, &mut depth_buffer, size, projection, projection_scale);
-        });
+    fn get_depth(&self, x: usize, y: usize) -> Result<Option<f32>, &'static str> {
+        let index = self.coord_to_index(x, y)?;
+        match self.depth.get(index) {
+            Some(&p) => Ok(p),
+            None => Err("Failed to get pixel depth from screen"),
+        }
+    }
 
-        self.faces.iter().for_each(|face| {
-            face.draw(&self.nodes, &mut screen, &mut depth_buffer, size, projection, projection_scale);
-        });
+    fn put_color(&mut self, x: usize, y: usize, color: [u8; 4]) -> Result<(), &'static str> {
+        let index = self.coord_to_index(x, y)?;
 
-        (screen.clone(), depth_buffer.clone())
+        if let Some(c) = self.color.get_mut(index) {
+            *c= color;
+            Ok(())
+        } else {
+            Err("Failed to put pixel onto screen")
+        }
+    }
+
+    fn put_depth(&mut self, x: usize, y: usize, depth: f32) -> Result<(), &'static str> {
+        let index = self.coord_to_index(x, y)?;
+        
+        if let Some(d) = self.depth.get_mut(index) {
+            *d= Some(depth);
+            Ok(())
+        } else {
+            Err("Failed to put pixel onto screen")
+        }
+    }
+
+    pub fn write(&mut self, x: usize, y: usize, new_color: Color, new_depth: f32) -> Result<(), &'static str> {
+        // Get the color and depth from the screen
+        let old_depth = self.get_depth(x, y)?;
+
+        // Test if the new pixel is in front of the old pixel
+        if let Some(old_depth) = old_depth {
+            if old_depth < new_depth {
+                self.put_color(x, y, new_color.get_rgba())?;
+                self.put_depth(x, y, new_depth)?;
+            }
+        } else {
+            self.put_color(x, y, new_color.get_rgba())?;
+            self.put_depth(x, y, new_depth)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn size(&self) -> (usize, usize) {
+        (self.width, self.color.len() / self.width)
+    }
+
+    fn coord_to_index(&self, x: usize, y: usize) -> Result<usize, &'static str> {
+        if x > self.width || y > 1000000 {
+            return Err("Trying to draw pixel outside screen buffer");
+        }
+        if self.color.len() < x * y || self.depth.len() < x * y {
+            return Err("Trying to draw pixel outside screen buffer");
+        }
+
+        Ok(x + self.width * y)
+    }
+
+    pub fn get_slice(&self) -> &[u8] {
+        // Flatten the 2D array of [u8; 4] to a 1D slice of u8
+        let color_slice = &self.color;
+        let flattened_slice = unsafe {
+            std::slice::from_raw_parts(
+                color_slice.as_ptr() as *const u8,
+                color_slice.len() * 4,  // 4 u8 per pixel
+            )
+        };
+        flattened_slice
     }
 }
 
-trait Render {
+pub trait Render<P, PN, P2, P3> 
+where 
+    PN: Project2D<Output = (P2, f32)> + Project3D<Output = P3>,
+{
+    type Output;
+
     /// Determine the screen coordinates of objects using certain transformations and insert them into the pixelbuffer
     fn draw(
         &self,
-        nodes: &Vec<Node>,
-        screen: &mut Vec<u8>,
-        depth_buffer: &mut Vec<Option<f32>>,
-        size: PhysicalSize<u32>,
+        positions: &[P],
+        screen_size: (usize, usize),
         projection: Projection,
-        projection_scale: f32,
-    );
-
-    /// Print a point to the screen with a certain y(square) radius
-    fn print_point(
-        x: i32,
-        y: i32,
-        z: f32,
-        r: f32,
-        screen: &mut Vec<u8>,
-        depth_buffer: &mut Vec<Option<f32>>,
-        size: PhysicalSize<u32>,
-        color: [u8; 4],
-    ) {
-        let rr = (r / 10.0) as i32;
-        
-        for x_off in -rr..=rr {
-            let x_p = x + x_off;
-            for y_off in -rr..=rr {
-                let y_p = y + y_off;
-                    
-                print_coord_in_pixelbuffer(x_p, y_p, z, screen, depth_buffer, size, color);
-            }
-        }
-    }
+    ) -> Self::Output;
 }
 
-fn scale(pos: Pos4D, to_camera: Pos3D) -> f32 {
-    // Find the angle between the origin to the point and the origin to the camera
-    let pos_3d: Pos3D = Pos3D {
-        x: pos.x,
-        y: pos.y,
-        z: pos.z,
-    };
-
-    // The smaller the angle to the camera, the larger the nodes are when drawn to the screen
-    // This is meant to simulate a kind of reflection, where the light is large and behind the camera
-    (to_camera * (1.0 / to_camera.len())) >> ((pos_3d * (1.0 / pos_3d.len())) * 2.0)
-}
-
-impl Render for Node {
-    #[allow(unused_variables)]
+impl<T> Render<Node<T>, T, Pos2D, Pos3D> for Node<T> 
+where 
+    T: Project2D<Output = (Pos2D, f32)> + Project3D<Output = Pos3D> + Copy, 
+{
+    type Output = Vec<(Pos2D, usize, Color, f32)>;
+    
     fn draw(
         &self,
-        nodes: &Vec<Node>,
-        screen: &mut Vec<u8>,
-        depth_buffer: &mut Vec<Option<f32>>,
-        size: PhysicalSize<u32>,
+        _nodes: &[Node<T>],
+        screen_size: (usize, usize),
         projection: Projection,
-        projection_scale: f32,
-    ) {
-        if self.r <= 0 {return;}
+    ) -> Self::Output {
+        let mut changes = Vec::new();
+
+        if self.r == 0 { return changes; }
         // if self.pos.w != self.pos.w.clamp(0.9, 1.1) {return};
 
         // Transform the Node to screen coordinates
-        let (pos, depth): (Pos2D, f32) = projection.project(self.pos, size, projection_scale);
+        let (pos, depth) = projection.project(self.pos, screen_size);
 
         let r = self.r; //scale(self.pos, projection.get_camera_pos()) * self.r;
 
-        // Set the color of the points
-        let rgba = self.color.get_rgba();
-        // rgba[2] = (50.0 * (self.pos.w + 2.5)) as u8;
+        changes.push((pos, r, self.color, depth));
 
-        Self::print_point(pos.x as i32, pos.y as i32, depth as f32, r as f32, screen, depth_buffer, size, rgba);
+        changes
     }
 }
 
-impl Render for Edge {
+impl<T> Render<Node<T>, T, Pos2D, Pos3D> for Face 
+where 
+    T: Project2D<Output = (Pos2D, f32)> + Project3D<Output = Pos3D> + Copy,
+{
+    type Output = Vec<(Pos2D, usize, Color, f32)>;
+    
     fn draw(
         &self,
-        nodes: &Vec<Node>,
-        screen: &mut Vec<u8>,
-        depth_buffer: &mut Vec<Option<f32>>,
-        size: PhysicalSize<u32>,
+        nodes: &[Node<T>],
+        screen_size: (usize, usize),
         projection: Projection,
-        projection_scale: f32,
-    ) {
-        if self.r <= 0 {return;}
+    ) -> Self::Output {
+        let mut changes = Vec::new();
 
-        let start_node: Node = nodes[self.start_node_index];
-        let end_node: Node = nodes[self.end_node_index];
-
-        // Calculate the screen coordinates of the start and end points
-        let (screen_start_point, start_depth): (Pos2D, f32) = projection.project(start_node.pos, size, projection_scale);
-        let (screen_end_point, end_depth): (Pos2D, f32) = projection.project(end_node.pos, size, projection_scale);
-
-        // Calculate vector for line connecting start and end point
-        let edge = {
-            [
-                screen_end_point.x - screen_start_point.x,
-                screen_end_point.y - screen_start_point.y,
-            ]
-        };
-
-        let to_camera = projection.get_camera_pos();
-
-        // Calculate the radius of the start and end points of the edge
-        let start_point_r = scale(start_node.pos, to_camera) * 0.1 * self.r as f32;
-        let end_point_r = scale(end_node.pos, to_camera) * 0.1 * self.r as f32;
-
-        // Set the amount of points that compose an edge based on the length of the edge on the screen
-        let resolution: f32 = (screen_end_point - screen_start_point).len();
-
-        // Interpolate between the colors of the two nodes
-        let start_color = start_node.color.get_rgba();
-        let end_color = end_node.color.get_rgba();
-
-        for i in 0..=(resolution as i32) {
-            let x_p = (edge[0] * i as f32 / resolution) as i32 + screen_start_point.x as i32;
-            let y_p = (edge[1] * i as f32 / resolution) as i32 + screen_start_point.y as i32;
-
-            let depth = ((end_depth - start_depth) * i as f32 / resolution) + start_depth;
-
-            // Interpolate the radius of the points making up the edges
-            let r =
-                (((end_point_r - start_point_r) * i as f32 / resolution) + start_point_r) as f32;
-
-            let mut rgba: [u8; 4] = [0; 4];
-            for c in 0..4 {
-                rgba[c] = (((end_color[c] as f32 - start_color[c] as f32) * i as f32 / resolution)
-                    + start_color[c] as f32).max(0.0) as u8
-            }
-
-            // Change the blue channel of the edge based on the w coordiante
-            // rgba[2] = (50.0
-            //     * (((end_node.pos.w - start_node.pos.w) * i as f32 / resolution
-            //         + start_node.pos.w)
-            //         + 2.5)) as u8;
-
-            Self::print_point(x_p, y_p, depth as f32, r, screen, depth_buffer, size, rgba);
-        }
-    }
-}
-
-impl Render for Face {
-    fn draw(
-        &self,
-        nodes: &Vec<Node>,
-        screen: &mut Vec<u8>,
-        depth_buffer: &mut Vec<Option<f32>>,
-        size: PhysicalSize<u32>,
-        projection: Projection,
-        projection_scale: f32,
-    ) {
-        if self.r <= 0 {return;}
+        if self.r == 0 { return changes; }
         let node_a = &nodes[self.node_a_index];
         let node_b = &nodes[self.node_b_index];
         let node_c = &nodes[self.node_c_index];
 
         let vector_a =
-            projection.project_to_3d(node_b.pos) + projection.project_to_3d(node_a.pos) * -1.0;
+            node_b.pos.project_3d(&projection, screen_size) + node_a.pos.project_3d(&projection, screen_size) * -1.0;
         let vector_b =
-            projection.project_to_3d(node_c.pos) + projection.project_to_3d(node_a.pos) * -1.0;
+            node_c.pos.project_3d(&projection, screen_size) + node_a.pos.project_3d(&projection, screen_size) * -1.0;
 
         // Get the normal vector of the surface by taking the cross product
-        let normal: Pos3D = vector_a ^ vector_b;
+        let normal = vector_a ^ vector_b;
 
         let to_camera = projection.get_camera_pos();
 
         // Let the brightness depend on the angle between the normal and the camera path
         // 1 if staight on, 0 if perpendicular and -1 if facing opposite
-        let angle_to_camera: f32 = (normal >> to_camera) / (normal.len() * to_camera.len());
+        let angle_to_camera = (normal >> to_camera) / (normal.len() * to_camera.len());
 
-        if angle_to_camera < 0.0 {
-            return;
-        }
+        if angle_to_camera < 0.0 { return changes; }
 
         // Get the locations of the three nodes of the triangle
-        let (pos_a, depth_a): (Pos2D, f32) = projection.project(node_a.pos, size, projection_scale);
-        let (pos_b, depth_b): (Pos2D, f32) = projection.project(node_b.pos, size, projection_scale);
-        let (pos_c, depth_c): (Pos2D, f32) = projection.project(node_c.pos, size, projection_scale);
+        let (pos_a, depth_a) = projection.project(node_a.pos, screen_size);
+        let (pos_b, depth_b) = projection.project(node_b.pos, screen_size);
+        let (pos_c, depth_c) = projection.project(node_c.pos, screen_size);
 
         // Calculate 2d vectors between the points on the screen
-        let a_to_b: Pos2D = pos_b + (pos_a * -1.0);
-        let a_to_c: Pos2D = pos_c + (pos_a * -1.0);
+        let a_to_b = pos_b + (pos_a * -1.0);
+        let a_to_c = pos_c + (pos_a * -1.0);
 
         // Change the alpha channel based on the angle between the camera and the surface
         let alpha = (255.0 * angle_to_camera.clamp(0.0, 1.0)) as u8;
@@ -330,18 +282,20 @@ impl Render for Face {
                 if u + v > 1.0 {break;}
 
                 let mut rgba: [u8; 4] = [0; 4];
-                for c in 0..=3 {
+                for c in 0..4 {
                     rgba[c] = (a_color[c] as f32 + (b_color[c] as f32 - a_color[c] as f32) * u + (c_color[c] as f32 - a_color[c] as f32) * v) as u8
                 }
 
-                rgba[3] = alpha;
+                let color = Color::RGBA(rgba[0], rgba[1], rgba[2], alpha);
 
-                let p = pos_a + a_to_b * u + a_to_c * v;
+                let pos = pos_a + a_to_b * u + a_to_c * v;
 
                 let depth = depth_a + (depth_b - depth_a) * u + (depth_c - depth_a) * v;
 
-                Self::print_point(p.x as i32, p.y as i32, depth as f32, self.r as f32, screen, depth_buffer, size, rgba);
+                changes.push((pos, self.r, color, depth));
             }
         }
+
+        changes
     }
 }

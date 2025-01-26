@@ -1,12 +1,61 @@
 use std::f32::consts::PI;
 
 use crate::{
-    pos::Pos4D,
-    render::{Color::*, Edge, Face, Node, Object},
+    pos::{Pos3D, Pos4D},
+    render::Color::*,
+    object::{Face, Node, Object},
 };
 
-pub fn empty() -> Object {
-    let nodes: Vec<Node> = vec![
+pub fn empty_3d() -> Object<Pos3D> {
+    let nodes: Vec<Node<Pos3D>> = vec![
+        Node {
+            pos: Pos3D {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            r: 10,
+            color: White,
+        },
+        Node {
+            pos: Pos3D {
+                x: 1.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            r: 10,
+            color: Red,
+        },
+        Node {
+            pos: Pos3D {
+                x: 0.0,
+                y: 1.0,
+                z: 0.0,
+            },
+            r: 10,
+            color: Green,
+        },
+        Node {
+            pos: Pos3D {
+                x: 0.0,
+                y: 0.0,
+                z: 1.0,
+            },
+            r: 10,
+            color: Blue,
+        },
+    ];
+
+    let faces: Vec<Face> = Vec::new();
+
+    Object {
+        nodes,
+        faces,
+    }
+}
+
+pub fn empty_4d() -> Object<Pos4D> {
+    let nodes: Vec<Node<Pos4D>> = vec![
         Node {
             pos: Pos4D {
                 x: 0.0,
@@ -59,17 +108,15 @@ pub fn empty() -> Object {
         },
     ];
 
-    let edges: Vec<Edge> = Vec::new();
     let faces: Vec<Face> = Vec::new();
 
     Object {
         nodes,
-        edges,
         faces,
     }
 }
 
-pub fn create_3_cube(r: f32) -> Object {
+pub fn create_3_cube(r: f32) -> Object<Pos3D> {
     let mut nodes = Vec::new();
 
     for i in 0..=1 {
@@ -82,35 +129,27 @@ pub fn create_3_cube(r: f32) -> Object {
                 let x = (k as f32 - 0.5) * 2.0 * r;
 
                 nodes.push(Node {
-                    pos: Pos4D { x, y, z, w: 0.0 },
-                    r: 0,
+                    pos: Pos3D { x, y, z },
+                    r: 1,
                     color: RGB(i * 255, j * 255, k * 255),
                 })
             }
         }
     }
 
-    const EDGE_INDECES: [(usize, usize); 12] = [
-        (0, 1), (0, 2), (0, 4), 
-        (3, 1), (3, 2),         (3, 7), 
-        (5, 1),         (5, 4), (5, 7),
-                (6, 2), (6, 4), (6, 7),
-    ];
-
-    let mut edges = Vec::new();
-    for index in EDGE_INDECES.iter() {
-        edges.push(Edge {
-            start_node_index: index.0,
-            end_node_index: index.1,
-            r: 0,
-        })
-    }
-
     const FACE_INDECES: [(usize, usize, usize); 12] = [
-        (0, 1, 4), (0, 4, 2), (0, 2, 1), 
-        (3, 1, 2), (3, 2, 7), (1, 3, 7),
-        (5, 1, 7), (5, 4, 1), (5, 7, 4),
-        (6, 2, 4), (6, 4, 7), (6, 7, 2),
+        (0, 1, 4),
+        (0, 4, 2),
+        (0, 2, 1),
+        (3, 1, 2),
+        (3, 2, 7),
+        (1, 3, 7),
+        (5, 1, 7),
+        (5, 4, 1),
+        (5, 7, 4),
+        (6, 2, 4),
+        (6, 4, 7),
+        (6, 7, 2),
     ];
 
     let mut faces = Vec::new();
@@ -125,23 +164,22 @@ pub fn create_3_cube(r: f32) -> Object {
 
     Object {
         nodes,
-        edges,
         faces,
     }
 }
 
-pub fn create_4_cube(r: f32) -> Object {
-    let mut nodes: Vec<Node> = Vec::new();
+pub fn create_4_cube(r: f32) -> Object<Pos4D> {
+    let mut nodes: Vec<Node<Pos4D>> = Vec::new();
 
     // Generate the shape
     for i in 0..=1 {
-        let w = (i as f32 - 0.5) * 2.0 * r;
+        let x = (i as f32 - 0.5) * 2.0 * r;
         for j in 0..=1 {
-            let z = (j as f32 - 0.5) * 2.0 * r;
+            let y = (j as f32 - 0.5) * 2.0 * r;
             for k in 0..=1 {
-                let y = (k as f32 - 0.5) * 2.0 * r;
+                let z = (k as f32 - 0.5) * 2.0 * r;
                 for l in 0..=1 {
-                    let x = (l as f32 - 0.5) * 2.0 * r;
+                    let w = (l as f32 - 0.5) * 2.0 * r;
                     nodes.push(Node {
                         pos: Pos4D { x, y, z, w },
                         r: 10,
@@ -152,177 +190,81 @@ pub fn create_4_cube(r: f32) -> Object {
         }
     }
 
+    const FACE_INDECES: [(usize, usize, usize); 48] = [
+        (0, 1, 4),
+        (0, 4, 2),
+        (0, 2, 1),
+        (0, 8, 11),
+        (0, 11, 13),
+        (0, 13, 8),
+
+        (3, 1, 2),
+        (3, 2, 7),
+        (3, 7, 1),
+        (3, 8, 11),
+        (3, 11, 14),
+        (3, 14, 8),
+
+        (5, 1, 7),
+        (5, 4, 1),
+        (5, 7, 4),
+        (5, 8, 13),
+        (5, 13, 14),
+        (5, 14, 8),
+
+        (6, 2, 4),
+        (6, 4, 7),
+        (6, 7, 2),
+        (6, 11, 13),
+        (6, 13, 14), 
+        (6, 14, 11),
+
+        (9, 8, 11),
+        (9, 11, 2),
+        (9, 2, 1),
+        (9, 8, 11),
+        (9, 11, 13),
+        (9, 13, 8),
+
+        (10, 1, 2),
+        (10, 2, 7),
+        (10, 7, 1),
+        (10, 8, 11),
+        (10, 11, 14),
+        (10, 14, 8),
+
+        (11, 1, 7),
+        (11, 4, 1),
+        (11, 7, 4),
+        (11, 8, 13),
+        (11, 13, 14),
+        (11, 14, 8),
+
+        (13, 2, 4),
+        (13, 4, 7),
+        (13, 7, 2),
+        (13, 11, 13),
+        (13, 13, 14),
+        (13, 14, 11),
+    ];
+    let mut faces = Vec::new();
+    for index in FACE_INDECES.iter() {
+        faces.push(Face {
+            node_a_index: index.0,
+            node_b_index: index.1,
+            node_c_index: index.2,
+            r: 5,
+        })
+    }
+
     Object {
         nodes,
-        edges: vec![
-            Edge {
-                start_node_index: 0,
-                end_node_index: 1,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 0,
-                end_node_index: 2,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 0,
-                end_node_index: 4,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 0,
-                end_node_index: 8,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 3,
-                end_node_index: 1,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 3,
-                end_node_index: 2,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 3,
-                end_node_index: 7,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 3,
-                end_node_index: 11,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 5,
-                end_node_index: 1,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 5,
-                end_node_index: 4,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 5,
-                end_node_index: 7,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 5,
-                end_node_index: 13,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 6,
-                end_node_index: 2,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 6,
-                end_node_index: 4,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 6,
-                end_node_index: 7,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 6,
-                end_node_index: 14,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 9,
-                end_node_index: 1,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 9,
-                end_node_index: 8,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 9,
-                end_node_index: 11,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 9,
-                end_node_index: 13,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 10,
-                end_node_index: 2,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 10,
-                end_node_index: 8,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 10,
-                end_node_index: 11,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 10,
-                end_node_index: 14,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 12,
-                end_node_index: 4,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 12,
-                end_node_index: 8,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 12,
-                end_node_index: 13,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 12,
-                end_node_index: 14,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 15,
-                end_node_index: 7,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 15,
-                end_node_index: 11,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 15,
-                end_node_index: 13,
-                r: 10,
-            },
-            Edge {
-                start_node_index: 15,
-                end_node_index: 14,
-                r: 10,
-            },
-        ],
-        faces: Vec::new(),
+        faces,
     }
 }
 
-pub fn create_3_sphere(res: i32) -> Object {
-    let mut nodes: Vec<Node> = Vec::new();
-    let edges: Vec<Edge> = Vec::new();
+pub fn create_3_sphere(res: i32, scale: f32) -> Object<Pos3D> {
+    let mut nodes: Vec<Node<Pos3D>> = Vec::new();
     let faces: Vec<Face> = Vec::new();
 
     let phi = PI * (3.0 - (5.0_f32).sqrt());
@@ -337,22 +279,20 @@ pub fn create_3_sphere(res: i32) -> Object {
         let z = theta.sin() * r;
 
         nodes.push(Node {
-            pos: Pos4D { x, y, z, w: 0.0 },
+            pos: Pos3D { x, y, z } * scale,
             r: 10,
-            color: Purple,
+            color: Blue,
         })
     }
 
     Object {
         nodes,
-        edges,
         faces,
     }
 }
 
-pub fn create_4_sphere(res: i32, r: f32) -> Object {
-    let mut nodes: Vec<Node> = Vec::new();
-    let edges: Vec<Edge> = Vec::new();
+pub fn create_4_sphere(res: i32, r: f32) -> Object<Pos4D> {
+    let mut nodes: Vec<Node<Pos4D>> = Vec::new();
     let faces: Vec<Face> = Vec::new();
 
     let res_per_plane = (res as f32).sqrt() as i32;
@@ -391,14 +331,12 @@ pub fn create_4_sphere(res: i32, r: f32) -> Object {
 
     Object {
         nodes,
-        edges,
         faces,
     }
 }
 
-pub fn create_torus(res: i32, r: f32) -> Object {
-    let mut nodes: Vec<Node> = Vec::new();
-    let edges: Vec<Edge> = Vec::new();
+pub fn create_torus(res: i32, r: f32) -> Object<Pos3D> {
+    let mut nodes: Vec<Node<Pos3D>> = Vec::new();
     let faces: Vec<Face> = Vec::new();
 
     let major_r: f32 = r;
@@ -416,9 +354,8 @@ pub fn create_torus(res: i32, r: f32) -> Object {
             let x = (major_r + minor_r * cos_t) * sin_p;
             let y = (major_r + minor_r * cos_t) * cos_p;
             let z = minor_r * sin_t;
-            let w = 0.0;
 
-            let pos = Pos4D { x, y, z, w };
+            let pos = Pos3D { x, y, z };
 
             nodes.push(Node {
                 pos,
@@ -430,7 +367,6 @@ pub fn create_torus(res: i32, r: f32) -> Object {
 
     Object {
         nodes,
-        edges,
         faces,
     }
 }
